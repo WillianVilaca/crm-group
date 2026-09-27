@@ -28,14 +28,25 @@ export default async function LoginPage({
   const t = (texto: string) => traduzir(texto, idioma);
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-1.5 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("Entrar")}</h1>
-        <p className="text-sm text-muted-foreground">{branding().name}</p>
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <div className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-accent">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+          Acesso seguro
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold tracking-[-0.045em] text-text sm:text-4xl">
+            {t("Entrar")}
+          </h1>
+          <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
+            Acesse o ambiente da sua operação comercial e continue de onde parou.
+          </p>
+          <p className="mt-3 text-sm font-semibold text-accent">{branding().name}</p>
+        </div>
       </div>
       {reset === "success" && (
         <div
-          className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm"
+          className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm leading-6"
           role="status"
         >
           {t("Senha redefinida com sucesso. Entre com a nova senha.")}
@@ -43,7 +54,7 @@ export default async function LoginPage({
       )}
       {error === "link_invalido" && (
         <div
-          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm leading-6 text-destructive"
           role="alert"
         >
           {t("Link inválido ou expirado. Peça um novo em Recuperar senha ou refaça o cadastro.")}
@@ -56,7 +67,7 @@ export default async function LoginPage({
       */}
       {error === "convite_invalido" && (
         <div
-          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm leading-6 text-destructive"
           role="alert"
         >
           {t(
@@ -66,7 +77,7 @@ export default async function LoginPage({
       )}
       {error === "cadastro_por_convite" && (
         <div
-          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm leading-6 text-destructive"
           role="alert"
         >
           {t(
@@ -76,7 +87,7 @@ export default async function LoginPage({
       )}
       {error === "template_padrao" && (
         <div
-          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm leading-6 text-destructive"
           role="alert"
         >
           {t(
@@ -90,7 +101,7 @@ export default async function LoginPage({
       )}
       {error === "provisionamento" && (
         <div
-          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm leading-6 text-destructive"
           role="alert"
         >
           {t(
@@ -99,11 +110,11 @@ export default async function LoginPage({
         </div>
       )}
       <LoginForm next={next} />
-      <div className="space-y-2 text-center text-sm">
+      <div className="space-y-3 border-t border-border/70 pt-6 text-center text-sm">
         <p>
           <Link
             href="/login/forgot"
-            className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            className="font-medium text-accent underline underline-offset-4 hover:text-accent/80"
           >
             {t("Esqueci minha senha")}
           </Link>
@@ -112,7 +123,7 @@ export default async function LoginPage({
           {t("Não tem conta?")}{" "}
           <Link
             href="/signup"
-            className="font-medium text-foreground underline underline-offset-4"
+            className="font-semibold text-accent underline underline-offset-4 hover:text-accent/80"
           >
             {t("Criar conta")}
           </Link>

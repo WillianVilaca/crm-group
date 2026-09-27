@@ -46,7 +46,7 @@ export function WelcomeForm({ defaultOrgName }: { defaultOrgName: string }) {
 
   return (
     <form
-      className="space-y-5 rounded-lg border bg-background p-6"
+      className="overflow-hidden rounded-2xl border border-border/90 bg-surface/90 shadow-lg"
       action={(formData) => {
         if (!accepted) {
           toast.error(t("Aceite os termos para continuar."));
@@ -60,91 +60,124 @@ export function WelcomeForm({ defaultOrgName }: { defaultOrgName: string }) {
         });
       }}
     >
-      <div className="space-y-2">
-        <Label htmlFor="display_name">{t("Como se chama o seu negócio?")}</Label>
-        <Input
-          id="display_name"
-          name="display_name"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          minLength={2}
-          maxLength={120}
-          required
-        />
-        <p className="text-xs text-muted-foreground">
-          {t("É o nome que aparece para o seu time e nos relatórios. Pode ser clínica, loja, escritório — o que for seu.")}
+      <div className="border-b border-border/80 bg-surface-elevated/45 px-6 py-5 sm:px-7">
+        <p className="text-[10px] font-semibold tracking-[0.2em] text-accent uppercase">
+          Perfil da operação
+        </p>
+        <h3 className="mt-2 text-xl font-bold tracking-tight text-text">
+          Conte o essencial para começar.
+        </h3>
+        <p className="mt-1 text-sm leading-relaxed text-text-muted">
+          Você poderá ajustar essas informações depois, nas configurações do GroupCRM.
         </p>
       </div>
 
-      {/*
+      <div className="space-y-6 px-6 py-6 sm:px-7 sm:py-7">
+        <div className="space-y-2">
+          <Label htmlFor="display_name">{t("Como se chama o seu negócio?")}</Label>
+          <Input
+            id="display_name"
+            name="display_name"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            minLength={2}
+            maxLength={120}
+            required
+            className="h-11 rounded-lg bg-bg/50"
+          />
+          <p className="text-xs leading-relaxed text-text-muted">
+            {t(
+              "É o nome que aparece para o seu time e nos relatórios. Pode ser clínica, loja, escritório — o que for seu.",
+            )}
+          </p>
+        </div>
+
+        {/*
         A pergunta que faltava no produto inteiro. Sem ela, o funcionário nasce
         se apresentando como atendente de uma "loja online" — era o que os três
         modelos de prompt diziam — e o quadro de clientes nasce com as colunas
         de e-commerce que o gatilho semeia. Os dois defeitos têm a mesma origem:
         uma instalação que nunca pergunta em que ramo entrou.
       */}
-      <div className="space-y-2">
-        <Label htmlFor="o_que_faz">{t("O que vocês fazem?")}</Label>
-        <Input
-          id="o_que_faz"
-          name="o_que_faz"
-          value={oQueFaz}
-          onChange={(e) => setOQueFaz(e.target.value)}
-          maxLength={280}
-          placeholder={t("Ex.: clínica odontológica, ou venda de roupa fitness pelo WhatsApp")}
-        />
-        <p className="text-xs text-muted-foreground">
-          {t(
-            "Uma linha basta. É com isso que seu funcionário aprende com quem ele está falando — e que a gente monta o quadro de clientes do seu jeito.",
-          )}
-        </p>
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="o_que_faz">{t("O que vocês fazem?")}</Label>
+          <Input
+            id="o_que_faz"
+            name="o_que_faz"
+            value={oQueFaz}
+            onChange={(e) => setOQueFaz(e.target.value)}
+            maxLength={280}
+            placeholder={t("Ex.: clínica odontológica, ou venda de roupa fitness pelo WhatsApp")}
+            className="h-11 rounded-lg bg-bg/50"
+          />
+          <p className="text-xs leading-relaxed text-text-muted">
+            {t(
+              "Uma linha basta. É com isso que seu funcionário aprende com quem ele está falando — e que a gente monta o quadro de clientes do seu jeito.",
+            )}
+          </p>
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="timezone">{t("Onde você atende")}</Label>
-        <Select value={timezone} onValueChange={setTimezone}>
-          <SelectTrigger id="timezone">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {FUSOS.map((f) => (
-              <SelectItem key={f.id} value={f.id}>
-                {t(f.cidade)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <input type="hidden" name="timezone" value={timezone} />
-        <p className="text-xs text-muted-foreground">
-          {t("Decide o horário em que seu funcionário pode falar com clientes.")}
-        </p>
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="timezone">{t("Onde você atende")}</Label>
+          <Select value={timezone} onValueChange={setTimezone}>
+            <SelectTrigger id="timezone" className="h-11 rounded-lg bg-bg/50">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FUSOS.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {t(f.cidade)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <input type="hidden" name="timezone" value={timezone} />
+          <p className="text-xs leading-relaxed text-text-muted">
+            {t("Decide o horário em que seu funcionário pode falar com clientes.")}
+          </p>
+        </div>
 
-      <label className="flex items-start gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={accepted}
-          onChange={(e) => setAccepted(e.target.checked)}
-          className="mt-1"
-          required
-        />
-        <span>
-          {t("Li e aceito os")}{" "}
-          <a className="underline" href="/legal/terms" target="_blank" rel="noreferrer">
-            {t("Termos de Uso")}
-          </a>{" "}
-          {t("e a")}{" "}
-          <a className="underline" href="/legal/privacy" target="_blank" rel="noreferrer">
-            {t("Política de Privacidade")}
-          </a>
-          .
-        </span>
-      </label>
+        <label className="flex items-start gap-3 rounded-xl border border-border/80 bg-bg/35 p-3 text-sm">
+          <input
+            type="checkbox"
+            checked={accepted}
+            onChange={(e) => setAccepted(e.target.checked)}
+            className="mt-1 h-4 w-4 accent-accent"
+            required
+          />
+          <span className="leading-relaxed text-text-muted">
+            {t("Li e aceito os")}{" "}
+            <a
+              className="font-medium text-text underline underline-offset-2"
+              href="/legal/terms"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t("Termos de Uso")}
+            </a>{" "}
+            {t("e a")}{" "}
+            <a
+              className="font-medium text-text underline underline-offset-2"
+              href="/legal/privacy"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t("Política de Privacidade")}
+            </a>
+            .
+          </span>
+        </label>
 
-      <div className="flex sm:justify-end">
-        <Button type="submit" disabled={pending || !accepted} className="w-full sm:w-auto">
-          {pending ? t("Salvando...") : t("Continuar")}
-        </Button>
+        <div className="flex flex-col gap-3 border-t border-border/80 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-text-subtle">Leva menos de um minuto.</p>
+          <Button
+            type="submit"
+            disabled={pending || !accepted}
+            className="w-full rounded-lg sm:w-auto"
+          >
+            {pending ? t("Salvando...") : t("Continuar")}
+          </Button>
+        </div>
       </div>
     </form>
   );

@@ -105,6 +105,12 @@ export function SignupForm({ convite }: { convite?: ConviteDoSignup }) {
       }
       if (res.error === "rate_limited") {
         setServerError(t("Muitas tentativas. Aguarde alguns minutos."));
+      } else if (res.error === "email_provider_unavailable") {
+        setServerError(
+          t(
+            "O serviço de e-mail do Supabase não respondeu. Configure um SMTP personalizado ou aguarde alguns minutos antes de tentar novamente.",
+          ),
+        );
       } else if (res.error === "validation_error") {
         setServerError(t("Dados inválidos. Confira os campos."));
       } else if (res.error === "conta_ja_existe" && convite) {

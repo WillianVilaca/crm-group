@@ -22,8 +22,17 @@ import {
   validarProposta,
   type PropostaDeFunil,
 } from "@/lib/onboarding/proposta-de-funil";
-import { escolherPacotePorTexto, sugerirFunil, type Sugestao } from "@/lib/onboarding/sugerir-funil";
-import { requireOnboardingCtx, patchOnboardingState, loadOnboardingState, OnboardingError } from "./_shared";
+import {
+  escolherPacotePorTexto,
+  sugerirFunil,
+  type Sugestao,
+} from "@/lib/onboarding/sugerir-funil";
+import {
+  requireOnboardingCtx,
+  patchOnboardingState,
+  loadOnboardingState,
+  OnboardingError,
+} from "./_shared";
 
 /** O funil que o gatilho semeou — o que a pessoa tem antes deste passo. */
 export interface QuadroAtual {
@@ -192,7 +201,8 @@ export async function aplicarQuadro(formData: FormData): Promise<ResultadoDoQuad
   try {
     ctx = await requireOnboardingCtx();
   } catch (err) {
-    if (err instanceof OnboardingError) return { ok: false, erro: "Sua sessão expirou. Entre de novo." };
+    if (err instanceof OnboardingError)
+      return { ok: false, erro: "Sua sessão expirou. Entre de novo." };
     throw err;
   }
 
@@ -251,13 +261,50 @@ export async function aplicarQuadro(formData: FormData): Promise<ResultadoDoQuad
     return { ok: false, erro: explicarRecusa(r.motivo, r.quantos) };
   }
 
+  // O pacote do nicho pode trazer campos de negócio junto do quadro. Eles ficam
+  // em `crm_pipelines.settings.fields`, que é a fonte lida pelo dossiê do lead
+  // e pela tela de configuração. A atualização é tenant-scoped e preserva as
+  // demais chaves do jsonb; não gravamos configuração no banco sem antes ter
+  // passado pela confirmação do onboarding.
+  if (proposta.campos) {
+    const { data: pipeline, error: pipelineReadError } = await admin
+      .from("crm_pipelines")
+      .select("settings")
+      .eq("id", atual.pipelineId)
+      .eq("organization_id", ctx.orgId)
+      .maybeSingle();
+    if (pipelineReadError) {
+      return {
+        ok: false,
+        erro: `Salvei as etapas, mas não consegui carregar os campos do funil: ${pipelineReadError.message}`,
+      };
+    }
+
+    const settings = (pipeline?.settings as Record<string, unknown> | null) ?? {};
+    const { error: fieldsError } = await admin
+      .from("crm_pipelines")
+      .update({ settings: { ...settings, fields: proposta.campos } })
+      .eq("id", atual.pipelineId)
+      .eq("organization_id", ctx.orgId);
+    if (fieldsError) {
+      return {
+        ok: false,
+        erro: `Salvei as etapas, mas não consegui salvar os campos do funil: ${fieldsError.message}`,
+      };
+    }
+  }
+
   const origem = String(formData.get("origem") ?? "pacote") === "ia" ? "ia" : "pacote";
   try {
     await patchOnboardingState(ctx.orgId, {
       funil: { pipeline_id: atual.pipelineId, origem, etapas: proposta.etapas.length },
     });
   } catch (err) {
-    if (err instanceof OnboardingError) return { ok: false, erro: "Salvei o quadro, mas não consegui registrar o passo. Tente continuar de novo." };
+    if (err instanceof OnboardingError)
+      return {
+        ok: false,
+        erro: "Salvei o quadro, mas não consegui registrar o passo. Tente continuar de novo.",
+      };
     throw err;
   }
 
@@ -267,7 +314,12 @@ export async function aplicarQuadro(formData: FormData): Promise<ResultadoDoQuad
     organizationId: ctx.orgId,
     resourceType: "crm_pipeline",
     resourceId: atual.pipelineId,
-    metadata: { origem, etapas: proposta.etapas.length, nome: proposta.nome },
+    metadata: {
+      origem,
+      etapas: proposta.etapas.length,
+      nome: proposta.nome,
+      campos: proposta.campos?.length ?? 0,
+    },
   });
 
   redirect("/onboarding");

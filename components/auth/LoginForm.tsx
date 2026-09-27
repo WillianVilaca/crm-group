@@ -58,28 +58,40 @@ export function LoginForm({ next }: { next?: string }) {
   };
 
   return (
-    <form method="post" onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-      <div className="space-y-1.5">
-        <Label htmlFor="email">{t("Email")}</Label>
+    <form method="post" onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+      <div className="space-y-2">
+        <Label
+          htmlFor="email"
+          className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+        >
+          {t("Email")}
+        </Label>
         <Input
           id="email"
           type="email"
           autoComplete="email"
           autoFocus
           aria-invalid={errors.email ? true : undefined}
+          className="h-12 rounded-xl bg-white/75 px-4 shadow-sm dark:bg-white/[0.04]"
           {...register("email")}
         />
         {errors.email && (
           <p className="text-xs text-destructive">{t(errors.email.message ?? "")}</p>
         )}
       </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="password">{t("Senha")}</Label>
+      <div className="space-y-2">
+        <Label
+          htmlFor="password"
+          className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+        >
+          {t("Senha")}
+        </Label>
         <Input
           id="password"
           type="password"
           autoComplete="current-password"
           aria-invalid={errors.password ? true : undefined}
+          className="h-12 rounded-xl bg-white/75 px-4 shadow-sm dark:bg-white/[0.04]"
           {...register("password")}
         />
         {errors.password && (
@@ -88,13 +100,17 @@ export function LoginForm({ next }: { next?: string }) {
       </div>
       {serverError && (
         <div
-          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm leading-6 text-destructive"
           role="alert"
         >
           {serverError}
         </div>
       )}
-      <Button type="submit" className="w-full" disabled={isPending}>
+      <Button
+        type="submit"
+        className="h-12 w-full rounded-xl text-sm font-semibold shadow-[0_12px_28px_-14px_rgba(6,111,174,0.85)]"
+        disabled={isPending}
+      >
         {isPending ? t("Entrando...") : t("Entrar")}
       </Button>
     </form>

@@ -42,6 +42,8 @@ export interface ContextoDoNegocio {
  * estão na cabeça de quem atende no WhatsApp.
  */
 const PISTAS: Record<string, RegExp> = {
+  seguros:
+    /\b(seguradora|seguro|seguros|prote[çc][ãa]o veicular|assist[êe]ncia veicular|ap[oó]lice|sinistro|cota[çc][ãa]o)/i,
   clinica:
     /\b(cl[ií]nic|consult[óo]ri|dentist|odonto|m[ée]dic|terapeut|psic[óo]log|fisioterap|est[ée]tic|sal[ãa]o|barbear|petshop|veterin[áa]ri|nutricion)/i,
   imobiliaria: /\b(imobili[áa]ri|corret|im[óo]ve|apartament|alugu[ée]|loteament|terren)/i,

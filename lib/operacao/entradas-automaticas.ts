@@ -24,6 +24,7 @@ import { ApiError } from "@/lib/api/types";
 import type { Actor } from "@/lib/api/handlers/types";
 import { audit } from "@/lib/audit";
 import { autoriaDaMudanca } from "@/lib/operacao/autoria";
+import type { ModoDeCaptura } from "@/lib/webhooks/captura";
 
 type SB = SupabaseClient;
 
@@ -46,6 +47,8 @@ export interface FonteVisivel {
   default_pipeline_id: string;
   default_stage_id: string;
   redirect_to: string | null;
+  capture_mode: ModoDeCaptura;
+  capture_html: string | null;
   field_map: Record<string, unknown>;
   last_received_at: string | null;
   has_secret: boolean;
@@ -65,11 +68,14 @@ export interface FonteVisivel {
 const COLUNAS =
   "id, organization_id, name, is_active, kind, path_token, default_pipeline_id, default_stage_id, " +
   "redirect_to, field_map, last_received_at, secret_encrypted, created_at, updated_at, " +
-  "last_change_actor_kind, last_change_at";
+  "last_change_actor_kind, last_change_at, capture_mode, capture_html";
 
 function semSegredo(linha: Record<string, unknown>): FonteVisivel {
   const { secret_encrypted, ...resto } = linha;
-  return { ...(resto as unknown as Omit<FonteVisivel, "has_secret">), has_secret: secret_encrypted !== null };
+  return {
+    ...(resto as unknown as Omit<FonteVisivel, "has_secret">),
+    has_secret: secret_encrypted !== null,
+  };
 }
 
 export async function listarEntradasAutomaticas(
@@ -178,6 +184,8 @@ export interface NovaEntradaAutomatica {
   default_pipeline_id: string;
   default_stage_id: string;
   redirect_to?: string | null;
+  capture_mode?: ModoDeCaptura;
+  capture_html?: string | null;
   field_map?: Record<string, string[]>;
   /** Já CIFRADO pelo chamador. A operação nunca vê plaintext de segredo. */
   secret_encrypted?: string | null;
@@ -210,6 +218,8 @@ export async function criarEntradaAutomatica(
       default_stage_id: input.default_stage_id,
       field_map: input.field_map ?? {},
       redirect_to: input.redirect_to ?? null,
+      capture_mode: input.capture_mode ?? "crm",
+      capture_html: input.capture_html ?? null,
       ...autoriaDaMudanca(deps.actor),
     })
     .select(COLUNAS)

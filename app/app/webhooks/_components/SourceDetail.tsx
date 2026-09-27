@@ -58,6 +58,14 @@ function publicUrl(pathToken: string): string {
   return `${base}/api/v1/webhooks/in/${pathToken}`;
 }
 
+function publicCaptureUrl(pathToken: string): string {
+  const base =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : (process.env.NEXT_PUBLIC_APP_URL ?? "");
+  return `${base}/captar/${pathToken}`;
+}
+
 function formSnippet(url: string, t: (texto: string) => string): string {
   return `<form action="${url}" method="POST">
   <input name="nome" placeholder="${t("Seu nome")}" required />
@@ -93,6 +101,7 @@ export function SourceDetail({ source, open, onOpenChange }: Props) {
   const [testOk, setTestOk] = React.useState(false);
 
   const url = publicUrl(source.path_token);
+  const captureUrl = publicCaptureUrl(source.path_token);
   const events = eventsRes?.data ?? [];
 
   const sendTestLead = async () => {
@@ -105,7 +114,11 @@ export function SourceDetail({ source, open, onOpenChange }: Props) {
       const res = await fetch(`/api/v1/webhooks/in/${source.path_token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: "Lead de Teste", telefone: "11999990000", utm_source: "teste" }),
+        body: JSON.stringify({
+          nome: "Lead de Teste",
+          telefone: "11999990000",
+          utm_source: "teste",
+        }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
@@ -156,6 +169,35 @@ export function SourceDetail({ source, open, onOpenChange }: Props) {
                 onClick={() => copy(url, t("Endereço copiado."), t)}
               >
                 <Copy />
+              </Button>
+            </div>
+          </section>
+
+          <section className="space-y-2">
+            <p className="text-sm font-medium text-text">{t("Landing de captação")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t(
+                source.capture_mode === "html"
+                  ? "HTML próprio isolado e ligado ao endpoint desta fonte."
+                  : "Formulário pronto para captar leads de seguros e enviar os dados para esta fonte.",
+              )}
+            </p>
+            <div className="flex items-center gap-2">
+              <code className="min-w-0 flex-1 truncate rounded-sm border border-border bg-muted px-3 py-2 text-xs">
+                {captureUrl}
+              </code>
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                onClick={() => copy(captureUrl, t("Link da landing copiado."), t)}
+              >
+                <Copy />
+              </Button>
+              <Button asChild type="button" variant="secondary" size="sm">
+                <a href={captureUrl} target="_blank" rel="noreferrer">
+                  {t("Abrir")}
+                </a>
               </Button>
             </div>
           </section>
@@ -226,7 +268,9 @@ export function SourceDetail({ source, open, onOpenChange }: Props) {
           <section className="space-y-2">
             <p className="text-sm font-medium text-text">{t("Últimos recebimentos")}</p>
             {events.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t("Ainda não chegou nada por aqui.")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("Ainda não chegou nada por aqui.")}
+              </p>
             ) : (
               <ul className="space-y-1">
                 {events.map((ev) => (
@@ -237,7 +281,9 @@ export function SourceDetail({ source, open, onOpenChange }: Props) {
                         ev.valid_signature === false ? "bg-error" : "bg-success",
                       )}
                     />
-                    <span className="text-muted-foreground">{relativeReceivedAt(ev.created_at, localeDaData)}</span>
+                    <span className="text-muted-foreground">
+                      {relativeReceivedAt(ev.created_at, localeDaData)}
+                    </span>
                     {ev.valid_signature === false ? (
                       <span className="text-xs text-error">{t("assinatura inválida")}</span>
                     ) : null}

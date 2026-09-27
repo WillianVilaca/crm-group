@@ -19,6 +19,7 @@
  * `proposta-de-funil.ts` para a medição.
  */
 import type { PropostaDeFunil } from "@/lib/onboarding/proposta-de-funil";
+import { CAMPOS_DE_SEGURO } from "@/lib/seguros/campos";
 
 export interface PacoteDeFunil {
   id: string;
@@ -32,6 +33,27 @@ export interface PacoteDeFunil {
 }
 
 export const PACOTES: readonly PacoteDeFunil[] = [
+  {
+    id: "seguros",
+    comoSeApresenta: "Seguros e proteção veicular",
+    proposta: {
+      nome: "Vendas de seguros",
+      campos: CAMPOS_DE_SEGURO,
+      etapas: [
+        { nome: "Novo", passo: "new" },
+        { nome: "Qualificado", passo: "qualified" },
+        { nome: "Em negociação", passo: "negotiating" },
+        { nome: "Sem retorno", passo: null },
+        { nome: "Vistoria", passo: null },
+        { nome: "Análise", passo: null },
+        { nome: "Ativo", passo: "won" },
+        { nome: "Pós-vendas", passo: null },
+        { nome: "Não quer", passo: "lost" },
+        { nome: "Próximo mês", passo: null },
+        { nome: "Sem contato", passo: null },
+      ],
+    },
+  },
   {
     id: "clinica",
     comoSeApresenta: "Clínica, consultório ou salão",

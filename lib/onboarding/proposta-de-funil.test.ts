@@ -79,6 +79,23 @@ describe("os quadros prontos", () => {
 });
 
 describe("normalizar", () => {
+  it("preserva campos de negócio válidos e remove duplicados", () => {
+    const p = normalizarProposta({
+      nome: "Vendas de seguros",
+      campos: [
+        { key: "modelo_veiculo", label: "Modelo", type: "text" },
+        { key: "modelo_veiculo", label: "Modelo duplicado", type: "text" },
+        { key: "tipo_veiculo", label: "Tipo", type: "select", options: [] },
+      ],
+      etapas: [],
+    });
+
+    expect(p.campos).toEqual([
+      { key: "modelo_veiculo", label: "Modelo", type: "text" },
+      { key: "tipo_veiculo", label: "Tipo", type: "select", options: [] },
+    ]);
+  });
+
   it("tira espaço sobrando e colapsa espaço interno", () => {
     const p = normalizarProposta({
       nome: "  Agendamentos  ",
@@ -141,7 +158,9 @@ describe("normalizar", () => {
     // string, null, ou um array de números.
     expect(normalizarProposta({ nome: 42, etapas: "nada" }).etapas).toEqual([]);
     expect(normalizarProposta({}).etapas).toEqual([]);
-    expect(normalizarProposta({ nome: "X", etapas: [null, 7, { passo: "new" }] }).etapas).toEqual([]);
+    expect(normalizarProposta({ nome: "X", etapas: [null, 7, { passo: "new" }] }).etapas).toEqual(
+      [],
+    );
   });
 
   it("não inventa a coluna que falta", () => {

@@ -2,6 +2,11 @@
 
 Ordem definida pelo Rafael: **PRD → Regras de Negócio → Specs → Epics → Stories → Plano com Tasks**.
 
+## Pendências atuais do GroupCRM
+
+- [ ] Refinar o template visual dos e-mails enviados pela Brevo (o envio já foi validado; falta deixar confirmação e recuperação com a identidade da marca).
+- [ ] Configurar e validar o conector de WhatsApp/WAHA no ambiente local antes de liberar o atendimento pelo canal.
+
 ---
 
 ## Fase 0 — Brainstorming (em andamento)

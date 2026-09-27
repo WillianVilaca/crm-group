@@ -12,6 +12,11 @@ import {
   GATILHO_DE_DATA_DO_FUNIL,
   configDoGatilhoDeData,
 } from "@/lib/automation/gatilho-de-data-do-funil";
+import {
+  LIMITE_HTML_DE_CAPTURA,
+  MODOS_DE_CAPTURA,
+  validarHtmlDeCaptura,
+} from "@/lib/webhooks/captura";
 
 /**
  * Os gatilhos que o motor reconhece, e a entidade que cada um tem que trazer.
@@ -64,9 +69,21 @@ export const conditionSchema = z.object({
 });
 
 export const actionSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("create_or_move_lead"), config: z.object({ pipeline_id: z.string().uuid(), stage_id: z.string().uuid() }) }),
-  z.object({ type: z.literal("send_whatsapp_message"), config: z.object({ channel_session_id: z.string().uuid(), template: z.string().min(1).max(2000) }) }),
-  z.object({ type: z.literal("add_tag"), config: z.object({ tags: z.array(z.string().min(1).max(60)).min(1).max(10) }) }),
+  z.object({
+    type: z.literal("create_or_move_lead"),
+    config: z.object({ pipeline_id: z.string().uuid(), stage_id: z.string().uuid() }),
+  }),
+  z.object({
+    type: z.literal("send_whatsapp_message"),
+    config: z.object({
+      channel_session_id: z.string().uuid(),
+      template: z.string().min(1).max(2000),
+    }),
+  }),
+  z.object({
+    type: z.literal("add_tag"),
+    config: z.object({ tags: z.array(z.string().min(1).max(60)).min(1).max(10) }),
+  }),
   z.object({ type: z.literal("assign_owner"), config: z.object({ user_id: z.string().uuid() }) }),
   z.object({
     type: z.literal("send_ai_message"),
@@ -98,11 +115,13 @@ export const actionSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
-export const createWebhookSourceSchema = z.object({
+const webhookSourceBaseSchema = z.object({
   name: z.string().min(1).max(120),
   default_pipeline_id: z.string().uuid(),
   default_stage_id: z.string().uuid(),
   redirect_to: z.string().url().max(2000).nullish(),
+  capture_mode: z.enum(MODOS_DE_CAPTURA).default("crm"),
+  capture_html: z.string().max(LIMITE_HTML_DE_CAPTURA).nullish(),
   field_map: z
     .object({
       name: z.array(z.string()).optional(),
@@ -112,7 +131,24 @@ export const createWebhookSourceSchema = z.object({
     .optional(),
   secret: z.string().min(16).max(200).nullish(),
 });
-export const updateWebhookSourceSchema = createWebhookSourceSchema.partial().extend({
+
+export const createWebhookSourceSchema = webhookSourceBaseSchema.superRefine((value, ctx) => {
+  if (value.capture_mode === "html" && !value.capture_html?.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["capture_html"],
+      message: "HTML obrigatório para a fonte personalizada",
+    });
+    return;
+  }
+  if (value.capture_mode === "html") {
+    const erro = validarHtmlDeCaptura(value.capture_html);
+    if (erro) {
+      ctx.addIssue({ code: "custom", path: ["capture_html"], message: erro });
+    }
+  }
+});
+export const updateWebhookSourceSchema = webhookSourceBaseSchema.partial().extend({
   is_active: z.boolean().optional(),
 });
 

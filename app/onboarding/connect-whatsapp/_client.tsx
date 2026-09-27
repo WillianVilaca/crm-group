@@ -36,14 +36,7 @@ interface Props {
 type Forma = "qr" | "oficial" | "parceiro";
 
 type Status =
-  | "INIT"
-  | "STARTING"
-  | "SCAN_QR_CODE"
-  | "WORKING"
-  | "FAILED"
-  | "STOPPED"
-  | "NOT_STARTED"
-  | "ERROR";
+  "INIT" | "STARTING" | "SCAN_QR_CODE" | "WORKING" | "FAILED" | "STOPPED" | "NOT_STARTED" | "ERROR";
 
 interface SessionInfo {
   status: Status;
@@ -60,10 +53,10 @@ interface SessionInfo {
 function isRedirectError(err: unknown): boolean {
   return Boolean(
     err &&
-      typeof err === "object" &&
-      "digest" in err &&
-      typeof (err as { digest?: unknown }).digest === "string" &&
-      (err as { digest: string }).digest.startsWith("NEXT_REDIRECT"),
+    typeof err === "object" &&
+    "digest" in err &&
+    typeof (err as { digest?: unknown }).digest === "string" &&
+    (err as { digest: string }).digest.startsWith("NEXT_REDIRECT"),
   );
 }
 
@@ -127,8 +120,10 @@ function Escolha({
     <label
       data-testid={`forma-${valor}`}
       data-marcada={marcada ? "sim" : "nao"}
-      className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
-        marcada ? "border-primary bg-primary/5" : "border-border hover:bg-muted/40"
+      className={`group flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-[background-color,border-color,box-shadow,transform] duration-base ${
+        marcada
+          ? "-translate-y-px border-accent bg-accent-soft/70 shadow-md"
+          : "border-border/90 bg-surface/55 hover:-translate-y-px hover:border-accent/50 hover:bg-surface-elevated/55"
       }`}
     >
       <input
@@ -137,12 +132,12 @@ function Escolha({
         value={valor}
         checked={marcada}
         onChange={() => onEscolher(valor)}
-        className="mt-1 h-4 w-4 shrink-0 accent-primary"
+        className="mt-1 h-4 w-4 shrink-0 accent-accent"
         aria-label={titulo}
       />
       <span className="space-y-1">
-        <span className="block text-sm font-medium">{titulo}</span>
-        <span className="block text-xs text-muted-foreground">{corpo}</span>
+        <span className="block text-sm font-semibold text-text">{titulo}</span>
+        <span className="block text-xs leading-relaxed text-text-muted">{corpo}</span>
       </span>
     </label>
   );
@@ -175,52 +170,53 @@ function Saidas({ status, sessionName }: { status: Status; sessionName: string }
   const t = useT();
   const [pending, startTransition] = useTransition();
   return (
-    <div className="flex flex-wrap gap-2 pt-2">
-      <Button
-        type="button"
-        variant="outline"
-        disabled={pending}
-        onClick={() =>
-          startTransition(async () => {
-            try {
-              await skipWhatsapp();
-            } catch (err) {
-              if (isRedirectError(err)) throw err;
-              toast.error(`${t("Falha ao pular:")} ${String(err)}`);
-            }
-          })
-        }
-      >
-        {t("Pular por enquanto")}
-      </Button>
-      <Button
-        type="button"
-        disabled={pending || status === "WORKING"}
-        onClick={() =>
-          startTransition(async () => {
-            try {
-              await markWhatsappConfigured(
-                sessionName,
-                status === "WORKING" ? "WORKING" : "configured",
-              );
-            } catch (err) {
-              if (isRedirectError(err)) throw err;
-              toast.error(`${t("Falha ao marcar passo:")} ${String(err)}`);
-            }
-          })
-        }
-      >
-        {t("Conectei em outro lugar")}
-      </Button>
+    <div className="flex flex-col gap-3 border-t border-border/80 pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-xs leading-relaxed text-text-subtle">
+        Você poderá conectar ou trocar o número depois em Conexões.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={pending}
+          onClick={() =>
+            startTransition(async () => {
+              try {
+                await skipWhatsapp();
+              } catch (err) {
+                if (isRedirectError(err)) throw err;
+                toast.error(`${t("Falha ao pular:")} ${String(err)}`);
+              }
+            })
+          }
+        >
+          {t("Pular por enquanto")}
+        </Button>
+        <Button
+          type="button"
+          disabled={pending || status === "WORKING"}
+          onClick={() =>
+            startTransition(async () => {
+              try {
+                await markWhatsappConfigured(
+                  sessionName,
+                  status === "WORKING" ? "WORKING" : "configured",
+                );
+              } catch (err) {
+                if (isRedirectError(err)) throw err;
+                toast.error(`${t("Falha ao marcar passo:")} ${String(err)}`);
+              }
+            })
+          }
+        >
+          {t("Conectei em outro lugar")}
+        </Button>
+      </div>
     </div>
   );
 }
 
-export function ConnectWhatsappClient({
-  wahaConfigured,
-  sessionName,
-  oficialPodeReceber,
-}: Props) {
+export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPodeReceber }: Props) {
   const t = useT();
   const [pending, startTransition] = useTransition();
   const [forma, setForma] = useState<Forma | null>(null);
@@ -247,7 +243,10 @@ export function ConnectWhatsappClient({
     (async () => {
       setBusy(true);
       try {
-        const res = await fetch("/api/v1/onboarding/whatsapp/session", { method: "POST", headers: { "Idempotency-Key": createKey.current ??= randomId() } });
+        const res = await fetch("/api/v1/onboarding/whatsapp/session", {
+          method: "POST",
+          headers: { "Idempotency-Key": (createKey.current ??= randomId()) },
+        });
         const json = (await res.json()) as { data?: SessionInfo; error?: { message?: string } };
         if (cancelled) return;
         if (json.data) {
@@ -262,7 +261,9 @@ export function ConnectWhatsappClient({
         setInfo({
           status: "ERROR",
           session: sessionName,
-          error: json.error?.message ? t(json.error.message) : `${t("o servidor respondeu")} ${res.status}`,
+          error: json.error?.message
+            ? t(json.error.message)
+            : `${t("o servidor respondeu")} ${res.status}`,
         });
       } catch (err) {
         if (!cancelled) setInfo({ status: "ERROR", session: sessionName, error: String(err) });
@@ -298,7 +299,11 @@ export function ConnectWhatsappClient({
         if (!res.ok) {
           setInfo((antes) =>
             antes.status === "INIT" || antes.status === "STARTING"
-              ? { status: "ERROR", session: sessionName, error: `o servidor respondeu ${res.status}` }
+              ? {
+                  status: "ERROR",
+                  session: sessionName,
+                  error: `o servidor respondeu ${res.status}`,
+                }
               : antes,
           );
         }
@@ -332,10 +337,15 @@ export function ConnectWhatsappClient({
   async function restartSession() {
     setBusy(true);
     try {
-      const res = await fetch("/api/v1/onboarding/whatsapp/session?restart=1", { method: "POST", headers: { "Idempotency-Key": restartKey.current ??= randomId() } });
+      const res = await fetch("/api/v1/onboarding/whatsapp/session?restart=1", {
+        method: "POST",
+        headers: { "Idempotency-Key": (restartKey.current ??= randomId()) },
+      });
       const json = (await res.json()) as { data?: SessionInfo };
-      if (json.data) { setInfo(json.data); restartKey.current = null; }
-      else toast.error(t("Não consegui gerar outro código. Tente de novo em alguns segundos."));
+      if (json.data) {
+        setInfo(json.data);
+        restartKey.current = null;
+      } else toast.error(t("Não consegui gerar outro código. Tente de novo em alguns segundos."));
     } catch {
       toast.error(t("Não consegui falar com o servidor. Confira sua conexão e tente de novo."));
     } finally {
@@ -349,7 +359,7 @@ export function ConnectWhatsappClient({
   // é o único estado em que esta tela não tem efeito colateral nenhum.
   if (forma === null) {
     return (
-      <div className="space-y-4 rounded-lg border bg-background p-6">
+      <div className="space-y-5 rounded-2xl border border-border/90 bg-surface/90 p-5 shadow-lg sm:p-6">
         <fieldset className="space-y-3">
           <legend className="text-sm font-medium">{t("Como você já usa esse número?")}</legend>
           <p className="text-xs text-muted-foreground">
@@ -371,7 +381,9 @@ export function ConnectWhatsappClient({
               valor="oficial"
               atual={forma}
               titulo={t("Tenho conta oficial na Meta")}
-              corpo={t("Você cadastrou o número na Meta e tem as credenciais em mãos. Não usa o celular para conectar.")}
+              corpo={t(
+                "Você cadastrou o número na Meta e tem as credenciais em mãos. Não usa o celular para conectar.",
+              )}
               onEscolher={setForma}
             />
             <Escolha
@@ -390,7 +402,7 @@ export function ConnectWhatsappClient({
 
   if (forma === "oficial" || forma === "parceiro") {
     return (
-      <div className="space-y-4 rounded-lg border bg-background p-6">
+      <div className="space-y-5 rounded-2xl border border-border/90 bg-surface/90 p-5 shadow-lg sm:p-6">
         <VoltarParaEscolha onVoltar={() => setForma(null)} />
 
         {forma === "oficial" && !oficialPodeReceber && (
@@ -417,21 +429,32 @@ export function ConnectWhatsappClient({
   }
 
   return (
-    <div className="space-y-4 rounded-lg border bg-background p-6">
+    <div className="space-y-5 rounded-2xl border border-border/90 bg-surface/90 p-5 shadow-lg sm:p-6">
       <VoltarParaEscolha onVoltar={() => setForma(null)} />
       {!wahaConfigured && (
-        <div className="rounded-md border border-amber-300/60 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-100">
-          <p className="font-medium">{t("O WhatsApp desta instalação ainda não subiu.")}</p>
+        <div className="rounded-2xl border border-warning/40 bg-warning-bg/60 p-5 text-sm text-warning-fg">
+          <p className="flex items-center gap-2 font-semibold text-text">
+            <span aria-hidden className="h-2 w-2 rounded-full bg-warning" />
+            {t("O WhatsApp desta instalação ainda não subiu.")}
+          </p>
+          <p className="mt-2 leading-relaxed">
+            Isso significa que o conector de WhatsApp (WAHA), que roda separado do CRM, ainda não
+            está configurado ou ligado neste ambiente.
+          </p>
           <p className="mt-1">
-            {t("Ele roda no seu próprio servidor. Dá para seguir sem ele agora e conectar o número depois, em")}{" "}
+            {t(
+              "Ele roda no seu próprio servidor. Dá para seguir sem ele agora e conectar o número depois, em",
+            )}{" "}
             <strong>{t("Canais › Conexões")}</strong> —{" "}
-            {t("seu funcionário fica pronto de qualquer jeito, só não terá por onde atender ainda.")}
+            {t(
+              "seu funcionário fica pronto de qualquer jeito, só não terá por onde atender ainda.",
+            )}
           </p>
         </div>
       )}
 
       {wahaConfigured && (
-        <div className="rounded-md border bg-muted/40 p-4">
+        <div className="rounded-2xl border border-border/80 bg-bg/45 p-4 sm:p-5">
           {/*
             O que estava aqui: "Sessão: org_f3d61bc0" e "Status: INIT".
             O primeiro é um identificador que o produto deriva do id interno da
@@ -441,8 +464,12 @@ export function ConnectWhatsappClient({
             em "INIT", sem código, sem erro e sem próximo passo. A pessoa olha
             uma palavra que não significa nada e não sabe se espera ou desiste.
           */}
-          <p className="text-sm font-medium">{rotuloDoEstado(busy ? "STARTING" : status, t)}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{explicacaoDoEstado(busy ? "STARTING" : status, t)}</p>
+          <p className="text-sm font-semibold text-text">
+            {rotuloDoEstado(busy ? "STARTING" : status, t)}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-text-muted">
+            {explicacaoDoEstado(busy ? "STARTING" : status, t)}
+          </p>
 
           {/*
             O CÓDIGO EM SI. `showQr` já existia calculado (e o `qrTick` já era
@@ -459,27 +486,31 @@ export function ConnectWhatsappClient({
             recarregaria a imagem quando o WAHA girasse o QR por trás.
           */}
           {showQr && info.channel_session_id && (
-            <PairingOptions key={info.channel_session_id} sessionId={info.channel_session_id} qr={
-            <div className="mt-3 flex flex-col items-center gap-2">
-              {qrFailed ? (
-                <p className="text-xs text-muted-foreground">
-                  {t(
-                    "Não consegui carregar o código agora. Ele deve reaparecer sozinho em instantes — se não aparecer, gere outro abaixo.",
+            <PairingOptions
+              key={info.channel_session_id}
+              sessionId={info.channel_session_id}
+              qr={
+                <div className="mt-3 flex flex-col items-center gap-2">
+                  {qrFailed ? (
+                    <p className="text-xs text-muted-foreground">
+                      {t(
+                        "Não consegui carregar o código agora. Ele deve reaparecer sozinho em instantes — se não aparecer, gere outro abaixo.",
+                      )}
+                    </p>
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={qrTick}
+                      src={`/api/v1/onboarding/whatsapp/qr?t=${qrTick}`}
+                      alt={t("Código QR para conectar o WhatsApp")}
+                      className="h-48 w-48 rounded-md border bg-white object-contain sm:h-56 sm:w-56"
+                      onError={() => setQrFailed(true)}
+                      onLoad={() => setQrFailed(false)}
+                    />
                   )}
-                </p>
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={qrTick}
-                  src={`/api/v1/onboarding/whatsapp/qr?t=${qrTick}`}
-                  alt={t("Código QR para conectar o WhatsApp")}
-                  className="h-48 w-48 rounded-md border bg-white object-contain sm:h-56 sm:w-56"
-                  onError={() => setQrFailed(true)}
-                  onLoad={() => setQrFailed(false)}
-                />
-              )}
-            </div>
-            } />
+                </div>
+              }
+            />
           )}
 
           {status === "WORKING" && (
@@ -491,7 +522,9 @@ export function ConnectWhatsappClient({
           {status === "FAILED" && (
             <div className="mt-3 space-y-2">
               <p className="text-sm text-destructive">
-                {t("O código expirou antes de alguém escanear. É normal — ele vale só alguns minutos.")}
+                {t(
+                  "O código expirou antes de alguém escanear. É normal — ele vale só alguns minutos.",
+                )}
               </p>
               <p className="text-xs text-muted-foreground">
                 {t("Deixe o WhatsApp já aberto em")} <strong>{t("Aparelhos conectados")}</strong>{" "}
@@ -515,7 +548,13 @@ export function ConnectWhatsappClient({
                   {t("Detalhe técnico:")} <code className="break-all">{info.error}</code>
                 </p>
               )}
-              <Button type="button" size="sm" variant="outline" disabled={busy} onClick={restartSession}>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={busy}
+                onClick={restartSession}
+              >
                 {busy ? t("Tentando…") : t("Tentar de novo")}
               </Button>
             </div>

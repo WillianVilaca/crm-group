@@ -107,6 +107,10 @@ export const PUBLIC_PATHS: RegExp[] = [
   // dois nomes de propósito: `/^\/legal/` deixaria qualquer sub-path futuro
   // nascer público de carona.
   /^\/legal\/(terms|privacy)$/,
+  // Formulário público de captação. A rota resolve o tenant pelo token público
+  // e envia ao webhook inbound, que mantém rate limit, idempotência e auditoria.
+  /^\/captar\/[^/]+$/,
+  /^\/captar\/[^/]+\/sucesso$/,
 ];
 
 export function isPublicPath(pathname: string): boolean {

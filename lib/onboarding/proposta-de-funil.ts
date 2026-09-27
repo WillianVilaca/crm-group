@@ -24,6 +24,7 @@
  */
 import { LEAD_STAGES, type LeadStage } from "@/lib/agent-engine/agent/lead-state";
 import { chaveDeNome } from "@/lib/leads/stage-editing";
+import { customFieldSchema, type CustomFieldDef } from "@/lib/schemas/settings";
 
 /** Uma coluna do quadro, do jeito que a pessoa a lê na tela. */
 export interface EtapaProposta {
@@ -41,16 +42,18 @@ export interface EtapaProposta {
 export interface PropostaDeFunil {
   /** O nome do quadro. "Pedidos" numa clínica é o defeito de origem. */
   nome: string;
+  /** Campos de negócio que aparecem no dossiê deste funil. */
+  campos?: readonly CustomFieldDef[];
   etapas: EtapaProposta[];
 }
 
 /**
- * O teto não é estético: um quadro com 12 colunas não cabe na tela do celular do
+ * O teto não é estético: um quadro com 12 colunas já é denso na tela do celular do
  * dono, e a primeira coisa que ele faz é parar de usar. O piso é o mínimo que
  * ainda conta uma história (entrou → conversou → fechou/perdeu).
  */
 export const MIN_ETAPAS = 4;
-export const MAX_ETAPAS = 8;
+export const MAX_ETAPAS = 12;
 
 function ehPasso(v: unknown): v is LeadStage {
   return typeof v === "string" && (LEAD_STAGES as readonly string[]).includes(v);
@@ -58,6 +61,21 @@ function ehPasso(v: unknown): v is LeadStage {
 
 function limpar(texto: unknown): string {
   return typeof texto === "string" ? texto.replace(/\s+/g, " ").trim() : "";
+}
+
+function normalizarCampos(brutos: unknown): CustomFieldDef[] | undefined {
+  if (!Array.isArray(brutos)) return undefined;
+
+  const vistos = new Set<string>();
+  const campos: CustomFieldDef[] = [];
+  for (const bruto of brutos) {
+    if (campos.length >= 24) break;
+    const parsed = customFieldSchema.safeParse(bruto);
+    if (!parsed.success || vistos.has(parsed.data.key)) continue;
+    vistos.add(parsed.data.key);
+    campos.push(parsed.data);
+  }
+  return campos.length > 0 ? campos : undefined;
 }
 
 /**
@@ -74,6 +92,7 @@ function limpar(texto: unknown): string {
  */
 export function normalizarProposta(bruta: {
   nome?: unknown;
+  campos?: unknown;
   etapas?: unknown;
 }): PropostaDeFunil {
   const etapasBrutas = Array.isArray(bruta.etapas) ? bruta.etapas : [];
@@ -105,12 +124,14 @@ export function normalizarProposta(bruta: {
     etapas.push({ nome, passo });
   }
 
-  return { nome: limpar(bruta.nome), etapas };
+  const campos = normalizarCampos(bruta.campos);
+  return campos
+    ? { nome: limpar(bruta.nome), campos, etapas }
+    : { nome: limpar(bruta.nome), etapas };
 }
 
 export type ResultadoDaProposta =
-  | { ok: true; proposta: PropostaDeFunil }
-  | { ok: false; erros: string[] };
+  { ok: true; proposta: PropostaDeFunil } | { ok: false; erros: string[] };
 
 /**
  * Recusa a proposta que não vira um funil usável.

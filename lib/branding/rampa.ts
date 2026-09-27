@@ -10,8 +10,8 @@
  * pré-buildada e cada dependência nova é superfície de advisory num produto que o
  * cliente hospeda. As conversões (sRGB ↔ OKLab, de Björn Ottosson) cabem em 60 linhas.
  *
- * A régua é `app/globals.css`. `rampaDeSemente('#506d48')` reproduz os 11 stops Sage
- * com Δ ≤ 2/255 por canal — medido, e vigiado por
+ * A régua é `app/globals.css` e define os 11 stops visuais do produto — medidos e
+ * vigiados por
  * `tests/unit/branding-rampa.test.ts`, que LÊ os stops esperados do próprio CSS.
  */
 
@@ -31,7 +31,17 @@ export type Oklab = { readonly L: number; readonly a: number; readonly b: number
  * `noUncheckedIndexedAccess` isso é o que permite indexar sem `!` em toda linha.
  */
 export type Rampa = readonly [
-  string, string, string, string, string, string, string, string, string, string, string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
 ];
 
 /** Os rótulos dos graus, na mesma ordem da `Rampa`. */
@@ -203,7 +213,7 @@ export function compor(cor: string, alfa: number, sobre: string): string {
 // ── A rampa ──────────────────────────────────────────────────────────────────
 
 /**
- * Lightness dos 11 stops Sage, medida em OKLab a partir de `app/globals.css`.
+ * Lightness dos 11 stops da paleta base, medida em OKLab a partir de `app/globals.css`.
  * É a FORMA da escada — a curva de luminosidade que o design system desenhou à mão.
  */
 export const ESCADA_L = [

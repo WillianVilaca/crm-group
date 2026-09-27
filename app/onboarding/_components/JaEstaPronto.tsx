@@ -1,6 +1,7 @@
 import type { RetratoDaInstalacao } from "@/lib/instalacao/retrato";
 import type { Idioma } from "@/lib/i18n/idiomas";
 import { traduzir } from "@/lib/i18n/dicionario";
+import { CheckCircle, Warning } from "@/lib/ui/icons";
 
 /**
  * A primeira coisa que a pessoa lê no wizard: o que ela JÁ tem.
@@ -57,30 +58,58 @@ export function JaEstaPronto({
   ];
 
   const faltando = itens.filter((i) => !i.pronto).length;
+  const prontos = itens.length - faltando;
 
   return (
     <section
       aria-labelledby="ja-pronto"
-      className="rounded-lg border bg-background p-5"
+      className="relative overflow-hidden rounded-2xl border border-border/90 bg-surface/90 p-5 shadow-md"
     >
-      <h3 id="ja-pronto" className="text-sm font-medium">
-        {t("Você já instalou o sistema. Isto aqui já está de pé:")}
-      </h3>
-      <ul className="mt-3 space-y-1.5 text-sm">
+      <div aria-hidden className="absolute inset-y-0 left-0 w-1 bg-accent" />
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-semibold tracking-[0.2em] text-accent uppercase">
+            Raio-x da instalação
+          </p>
+          <h3 id="ja-pronto" className="mt-2 text-sm font-semibold text-text">
+            {t("Você já instalou o sistema. Isto aqui já está de pé:")}
+          </h3>
+        </div>
+        <span className="shrink-0 rounded-full border border-accent/25 bg-accent-soft px-2.5 py-1 text-[11px] font-semibold text-accent">
+          {prontos}/{itens.length} prontos
+        </span>
+      </div>
+      <ul className="mt-5 space-y-2">
         {itens.map((it) => (
-          <li key={it.texto} className="flex items-start gap-2">
-            <span
-              aria-hidden
-              className={
-                "mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full " +
-                (it.pronto ? "bg-emerald-500" : "bg-amber-500")
-              }
-            />
-            <span className={it.pronto ? "" : "text-muted-foreground"}>{it.texto}</span>
+          <li
+            key={it.texto}
+            className={
+              "flex items-start gap-2.5 rounded-xl border px-3 py-2.5 text-sm " +
+              (it.pronto
+                ? "border-success/20 bg-success-bg/45 text-text"
+                : "border-warning/20 bg-warning-bg/35 text-text-muted")
+            }
+          >
+            {it.pronto ? (
+              <CheckCircle
+                aria-hidden
+                size={17}
+                weight="fill"
+                className="mt-0.5 shrink-0 text-success"
+              />
+            ) : (
+              <Warning
+                aria-hidden
+                size={17}
+                weight="fill"
+                className="mt-0.5 shrink-0 text-warning"
+              />
+            )}
+            <span>{it.texto}</span>
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-muted-foreground">
+      <p className="mt-4 text-xs leading-relaxed text-text-muted">
         {faltando === 0
           ? t("Agora é montar quem vai atender por você.")
           : t("O que falta a gente resolve nos próximos passos.")}

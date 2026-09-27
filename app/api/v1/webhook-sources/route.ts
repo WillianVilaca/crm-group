@@ -85,7 +85,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (secretEncrypted === null) {
       return fail(
         "encryption_unavailable",
-        t("Não foi possível guardar o segredo com segurança: a chave de cifra desta instalação não está ativa. Quem administra o servidor resolve rodando o update.sh, que gera e ativa a chave. Enquanto isso, você pode criar a fonte sem segredo."),
+        t(
+          "Não foi possível guardar o segredo com segurança: a chave de cifra desta instalação não está ativa. Quem administra o servidor resolve rodando o update.sh, que gera e ativa a chave. Enquanto isso, você pode criar a fonte sem segredo.",
+        ),
         422,
         { requestId },
       );
@@ -106,6 +108,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       default_pipeline_id: parsed.data.default_pipeline_id,
       default_stage_id: parsed.data.default_stage_id,
       redirect_to: parsed.data.redirect_to ?? null,
+      capture_mode: parsed.data.capture_mode,
+      capture_html: parsed.data.capture_html ?? null,
       field_map: parsed.data.field_map,
       secret_encrypted: secretEncrypted,
     });

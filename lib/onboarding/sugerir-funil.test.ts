@@ -34,6 +34,9 @@ const responde = (texto: string): Gerar => vi.fn(async () => texto);
 
 describe("escolher o pacote pelo que o dono escreveu", () => {
   it("reconhece o ramo pelas palavras que ele usaria", () => {
+    const seguros = escolherPacotePorTexto("Seguradora de proteção veicular");
+    expect(seguros.id).toBe("seguros");
+    expect(seguros.proposta.campos?.map((campo) => campo.key)).toContain("modelo_veiculo");
     expect(escolherPacotePorTexto("Consultório odontológico").id).toBe("clinica");
     expect(escolherPacotePorTexto("Sou corretor de imóveis").id).toBe("imobiliaria");
     expect(escolherPacotePorTexto("Agência de arquitetura").id).toBe("servicos");

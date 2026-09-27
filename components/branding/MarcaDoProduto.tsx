@@ -1,4 +1,4 @@
-import { LOGOTIPO, SIMBOLO } from "@/lib/branding/desenho";
+import { SIMBOLO } from "@/lib/branding/desenho";
 import { cn } from "@/lib/utils";
 
 /**
@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
  * ninguém configurou marca própria (`marcaEhADoProduto`, em `lib/branding.ts`).
  *
  * Inline, e não `<img src="/algo.svg">`, por três motivos:
- *  - as cores seguem o TEMA: sálvia mais clara e nome em creme no escuro, como
+ *  - as cores seguem o TEMA: azul mais claro e nome em creme no escuro, como
  *    a régua do produto já define — um arquivo estático teria uma cor só;
  *  - nada em `public/`: um `.svg` fixo ali seria servido na instalação de um
  *    revendedor que configurou a marca dele (ver `lib/branding/desenho.ts`);
@@ -26,7 +26,7 @@ type Props = {
   readonly decorativo?: boolean;
 };
 
-const SIMBOLO_CLARO_ESCURO = "fill-[#506d48] dark:fill-[#82a077]";
+const SIMBOLO_CLARO_ESCURO = "fill-[#066fae] dark:fill-[#27c1ed]";
 const NOME_CLARO_ESCURO = "fill-[#1c1a16] dark:fill-[#f5f4ef]";
 const SUFIXO_CLARO_ESCURO = "fill-[#5d594f] dark:fill-[#8e8b7f]";
 
@@ -66,24 +66,25 @@ export function SimboloDoProduto({ nome, className, decorativo = false }: Props)
 export function LogotipoDoProduto({ nome, className, decorativo = false }: Props) {
   return (
     <svg
-      viewBox={LOGOTIPO.viewBox}
+      viewBox="0 0 360 72"
       className={cn("shrink-0", className)}
       {...acessibilidade(nome, decorativo)}
     >
-      <g className={SIMBOLO_CLARO_ESCURO} transform={LOGOTIPO.simbolo.transform}>
-        <path d={LOGOTIPO.simbolo.d} />
-        <rect {...LOGOTIPO.simbolo.modulo} />
+      <g className={SIMBOLO_CLARO_ESCURO} transform="translate(0 2) scale(0.31)">
+        <path d={SIMBOLO.d} />
+        <rect {...SIMBOLO.modulo} />
       </g>
-      <g className={NOME_CLARO_ESCURO}>
-        {LOGOTIPO.nome.map((g) => (
-          <path key={g.transform} transform={g.transform} d={g.d} />
-        ))}
-      </g>
-      <g className={SUFIXO_CLARO_ESCURO}>
-        {LOGOTIPO.sufixo.map((g) => (
-          <path key={g.transform} transform={g.transform} d={g.d} />
-        ))}
-      </g>
+      <text
+        x="76"
+        y="46"
+        className={NOME_CLARO_ESCURO}
+        fontFamily="var(--font-atkinson), ui-sans-serif, sans-serif"
+        fontSize="29"
+        fontWeight="700"
+        letterSpacing="-1.2"
+      >
+        {nome}
+      </text>
     </svg>
   );
 }

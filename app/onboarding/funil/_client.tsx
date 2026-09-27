@@ -6,7 +6,11 @@ import { useT } from "@/hooks/i18n/useT";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { aplicarQuadro, pularQuadro, type QuadroAtual } from "@/app/actions/onboarding/montarQuadro";
+import {
+  aplicarQuadro,
+  pularQuadro,
+  type QuadroAtual,
+} from "@/app/actions/onboarding/montarQuadro";
 import { explicacaoDoPasso } from "@/lib/leads/agent-mapping";
 import { MAX_ETAPAS, MIN_ETAPAS, type PropostaDeFunil } from "@/lib/onboarding/proposta-de-funil";
 import { PACOTES } from "@/lib/onboarding/pacotes-de-funil";
@@ -95,7 +99,8 @@ export function QuadroClient({
         <div className="space-y-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-sm">
           <p>
             {t("Não consegui pedir uma sugestão para o seu funcionário agora")}
-            {sugestao.porque ? <> — {t(sugestao.porque)}</> : null}. {t("Comecei por um quadro pronto de")}{" "}
+            {sugestao.porque ? <> — {t(sugestao.porque)}</> : null}.{" "}
+            {t("Comecei por um quadro pronto de")}{" "}
             <strong>{t(sugestao.pacote.comoSeApresenta)}</strong>.
           </p>
           <p className="text-xs text-muted-foreground">
@@ -149,7 +154,9 @@ export function QuadroClient({
                   salvar seria pior do que não oferecer o botão.
                 */}
                 {etapa.passo === "won" || etapa.passo === "lost" ? (
-                  <span className="mt-2 shrink-0 text-xs text-muted-foreground">{t("obrigatória")}</span>
+                  <span className="mt-2 shrink-0 text-xs text-muted-foreground">
+                    {t("obrigatória")}
+                  </span>
                 ) : (
                   <Button
                     type="button"
@@ -179,7 +186,8 @@ export function QuadroClient({
           </Button>
           {quadro.etapas.length >= MAX_ETAPAS ? (
             <span className="text-xs text-muted-foreground">
-              {MAX_ETAPAS} {t("colunas é o máximo — mais que isso não cabe na tela do celular.")}
+              {MAX_ETAPAS}{" "}
+              {t("colunas é o máximo — acima disso o quadro fica difícil de usar no celular.")}
             </span>
           ) : null}
         </div>
@@ -191,11 +199,11 @@ export function QuadroClient({
           <summary className="cursor-pointer text-muted-foreground">
             {t("O que veio na instalação")} ({atual.nome})
           </summary>
+          <p className="mt-2 text-xs text-muted-foreground">{atual.colunas.join(" → ")}</p>
           <p className="mt-2 text-xs text-muted-foreground">
-            {atual.colunas.join(" → ")}
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {t("Este é o quadro padrão, feito para loja online. Ao continuar, ele é substituído pelo de cima.")}
+            {t(
+              "Este é o quadro padrão, feito para loja online. Ao continuar, ele é substituído pelo de cima.",
+            )}
           </p>
         </details>
       ) : null}
@@ -247,22 +255,22 @@ export function QuadroClient({
               {t("Dê um nome à coluna em branco.")}
             </span>
           ) : null}
-        <Button
-          type="button"
-          disabled={pending || semNome}
-          onClick={() =>
-            startTransition(async () => {
-              const fd = new FormData();
-              fd.set("quadro", JSON.stringify(quadro));
-              fd.set("origem", origem);
-              const res = await aplicarQuadro(fd);
-              // Sucesso redireciona no servidor; só o desfecho ruim volta.
-              if (res && !res.ok) toast.error(res.erro);
-            })
-          }
-        >
-          {pending ? t("Salvando...") : t("Usar este quadro")}
-        </Button>
+          <Button
+            type="button"
+            disabled={pending || semNome}
+            onClick={() =>
+              startTransition(async () => {
+                const fd = new FormData();
+                fd.set("quadro", JSON.stringify(quadro));
+                fd.set("origem", origem);
+                const res = await aplicarQuadro(fd);
+                // Sucesso redireciona no servidor; só o desfecho ruim volta.
+                if (res && !res.ok) toast.error(res.erro);
+              })
+            }
+          >
+            {pending ? t("Salvando...") : t("Usar este quadro")}
+          </Button>
         </div>
       </div>
     </div>

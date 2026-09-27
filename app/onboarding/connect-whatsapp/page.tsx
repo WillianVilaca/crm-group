@@ -28,19 +28,33 @@ export default async function ConnectWhatsappPage() {
   // (and shows graceful banner if WAHA is not reachable).
 
   return (
-    <div className="space-y-6">
-      <header>
-        <h2 className="text-2xl font-semibold tracking-tight">{traduzir("Dê um telefone a ele", idioma)}</h2>
-        <p className="text-sm text-muted-foreground">
+    <div className="mx-auto max-w-4xl space-y-7">
+      <header className="max-w-3xl">
+        <p className="text-[10px] font-semibold tracking-[0.22em] text-accent uppercase">
+          Segundo passo · canal de atendimento
+        </p>
+        <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-text sm:text-4xl">
+          {traduzir("Dê um telefone a ele", idioma)}
+        </h2>
+        <p className="mt-3 text-base leading-relaxed text-text-muted">
           {traduzir(
             "É por este número que ele vai atender seus clientes. Se você conecta pelo celular, tenha ele por perto.",
             idioma,
           )}
         </p>
+        <p className="mt-3 text-sm leading-relaxed text-text-muted">
+          {traduzir(
+            "Novos canais começam em modo de teste. Após concluir a configuração, abra Conexões para autorizar seus números de teste ou liberar o público.",
+            idioma,
+          )}
+        </p>
       </header>
-      <p className="text-sm text-muted-foreground">
-        {traduzir("Novos canais começam em modo de teste. Após concluir a configuração, abra Conexões para autorizar seus números de teste ou liberar o público.", idioma)}
-      </p>
+      <div className="rounded-xl border border-accent/20 bg-accent-soft/35 px-4 py-3 text-sm text-text-muted">
+        <strong className="font-semibold text-text">
+          Escolha o cenário que combina com o seu número.
+        </strong>{" "}
+        O GroupCRM não cria uma sessão sem você escolher como esse WhatsApp será conectado.
+      </div>
       <ConnectWhatsappClient
         wahaConfigured={wahaConfigured}
         sessionName={nomeCurtoDaSessao(activeOrg.orgId)}

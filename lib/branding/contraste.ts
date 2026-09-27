@@ -5,7 +5,7 @@
  * Os três, e por que cada um é independente:
  *
  *  (a) **Contraste vertical, por PAPEL × SUPERFÍCIE.** Checar só o stop da semente é
- *      um gate que nasce verde e mente. Medido na Sage: `accent-600` contra `--color-bg`
+ *      um gate que nasce verde e mente. Medido na paleta azul: `accent-600` contra `--color-bg`
  *      dá 5,51 — mas o anel de foco usa `accent-500` (`globals.css`, `:focus-visible`) e
  *      dá 3,79 contra bg e 3,60 contra `surface-elevated`. Com a semente pousada num
  *      piso de 3,0, o anel pousaria em ~2,07 e o gate continuaria verde. Por isso os
@@ -136,7 +136,7 @@ export const PISO_DE_SEPARACAO_SIMULADA = 0.05;
  * Piso de croma que um accent precisa ter para marcar alguma coisa, e piso de distância
  * dele ao neutro do mesmo grau.
  *
- * O briefing pedia "ΔE ≥ 8", que é a convenção ×100. Medi antes de aceitar: na Sage,
+ * O briefing pedia "ΔE ≥ 8", que é a convenção ×100. Medi antes de aceitar: na paleta base,
  * `accent-600` contra `neutral-600` dá **0,0681** (6,81 na convenção ×100) e o stop 50
  * dá 0,0135. Um piso de 8 reprovaria o controle positivo do próprio produto. Fixei
  * 0,05 — a mesma unidade e a mesma ordem de grandeza do piso de dicromacia, uma unidade
@@ -315,10 +315,11 @@ export function extrairRegua(css: string): Regua {
   const regras = varrerRegras(css);
   const raiz = regras.find((r) => r.seletor === ":root");
   const escuro = regras.find(
-    (r) => r.seletor.includes('[data-theme="dark"]') && r.decls.some((d) => d.prop === "--color-bg"),
+    (r) =>
+      r.seletor.includes('[data-theme="dark"]') && r.decls.some((d) => d.prop === "--color-bg"),
   );
   if (!raiz || !escuro) {
-    throw new Error("régua: não achei os blocos :root e [data-theme=\"dark\"] no CSS");
+    throw new Error('régua: não achei os blocos :root e [data-theme="dark"] no CSS');
   }
 
   const rampaDoProduto = lerRampa(raiz.decls);
@@ -449,7 +450,7 @@ function montarTema(
     indices: {
       accent: accent.indice,
       hover: hover.indice,
-      // `--color-accent-soft` no escuro é `rgba(130,160,119,0.16)` — verde Sage CRU, que
+      // `--color-accent-soft` no escuro é uma cor azul literal, que
       // sobreviveria intacto a qualquer override da rampa. Sem índice, ele é reancorado
       // no stop do accent (ver `resolverSoft`); é a única forma de ele acompanhar a marca.
       soft: soft.tipo === "grau" ? soft.indice : null,
@@ -462,7 +463,11 @@ function montarTema(
 
 // ── Resolução de fontes sob um deslocamento ─────────────────────────────────
 
-function resolverFonte(fonte: Fonte, rampa: Rampa, deslocamento: number): { hex: string; alfa: number } {
+function resolverFonte(
+  fonte: Fonte,
+  rampa: Rampa,
+  deslocamento: number,
+): { hex: string; alfa: number } {
   if (fonte.tipo === "grau") {
     return { hex: stop(rampa, fonte.indice + deslocamento), alfa: fonte.alfa };
   }
@@ -474,7 +479,7 @@ function resolverFonte(fonte: Fonte, rampa: Rampa, deslocamento: number): { hex:
 /**
  * Toda superfície do tema, já opaca. A tingida translúcida vira N superfícies — uma por
  * base — porque é isso que ela é na tela: `rgba(...)` a 16% sobre `surface-elevated` é
- * outro pixel que sobre `bg`, e a razão de contraste difere (4,99 · 4,59 · 4,02 na Sage
+ * outro pixel que sobre `bg`, e a razão de contraste difere conforme o tema
  * escura). Medir só uma delas escolheria a mais folgada por acidente.
  */
 export function superficiesDoTema(
@@ -488,10 +493,11 @@ export function superficiesDoTema(
     // Fonte literal numa tingida = o token não referencia a rampa (o caso do escuro).
     // Reancoramos no stop que o tema pinta como accent: é o que faz a marca do cliente
     // chegar ao chip em vez de o verde do produto ficar lá para sempre.
-    const tinta =
-      t.fonte.tipo === "grau" ? hex : stop(rampa, tema.indices.accent + deslocamento);
+    const tinta = t.fonte.tipo === "grau" ? hex : stop(rampa, tema.indices.accent + deslocamento);
     if (alfa >= 1) saida.push({ chave: t.chave, hex: tinta });
-    else for (const b of tema.base) saida.push({ chave: `${t.chave}@${b.chave}`, hex: compor(tinta, alfa, b.hex) });
+    else
+      for (const b of tema.base)
+        saida.push({ chave: `${t.chave}@${b.chave}`, hex: compor(tinta, alfa, b.hex) });
   }
   return saida;
 }
@@ -506,11 +512,7 @@ export type ParMedido = {
 };
 
 /** Mede TODOS os pares (papel × superfície) do tema sob um deslocamento. */
-export function medirPares(
-  tema: TemaDaRegua,
-  rampa: Rampa,
-  deslocamento: number,
-): ParMedido[] {
+export function medirPares(tema: TemaDaRegua, rampa: Rampa, deslocamento: number): ParMedido[] {
   const superficies = superficiesDoTema(tema, rampa, deslocamento);
   const pares: ParMedido[] = [];
   for (const papel of tema.papeis) {
@@ -566,11 +568,7 @@ export type EscolhaDeAccent = {
  * deslocamento e DIZER que ele não fecha, não lançar exceção numa função que roda no
  * caminho de render do `app/layout.tsx`.
  */
-export function escolherAccent(
-  rampa: Rampa,
-  tema: TemaDaRegua,
-  alcance = 10,
-): EscolhaDeAccent {
+export function escolherAccent(rampa: Rampa, tema: TemaDaRegua, alcance = 10): EscolhaDeAccent {
   const sentidoUtil = tema.nome === "claro" ? 1 : -1;
   const candidatos: number[] = [0];
   for (let d = 1; d <= alcance; d += 1) candidatos.push(d * sentidoUtil, -d * sentidoUtil);
@@ -673,7 +671,11 @@ export function reconciliarSemanticas(
       });
 
     let achou: { cor: string; rotacao: number; separacao: number } | null = null;
-    for (let passo = PASSO_DE_ROTACAO; passo <= ROTACAO_MAXIMA && !achou; passo += PASSO_DE_ROTACAO) {
+    for (
+      let passo = PASSO_DE_ROTACAO;
+      passo <= ROTACAO_MAXIMA && !achou;
+      passo += PASSO_DE_ROTACAO
+    ) {
       for (const sinal of [1, -1] as const) {
         const candidata = girar(hex, sinal * passo);
         const separacao = deltaESimulado(candidata, accent);

@@ -14,6 +14,7 @@ import { modoDeCadastro } from "@/lib/auth/politica-de-cadastro";
 import { audit, hashEmail } from "@/lib/audit";
 import { authRateLimited, AUTH_LIMITS } from "@/lib/auth/rate-limit";
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export type SignUpResult =
   | {
@@ -52,6 +53,7 @@ export type SignUpResult =
       error:
         | "validation_error"
         | "rate_limited"
+        | "email_provider_unavailable"
         | "signup_failed"
         | "somente_convite"
         | "conta_ja_existe";
@@ -159,6 +161,32 @@ export async function signUp(
   });
 
   if (error) {
+    logger.error("auth.signup_provider_rejected", {
+      requestId,
+      status: error.status ?? null,
+      code: (error as { code?: string }).code ?? null,
+      message: error.message.replaceAll(parsed.data.email, "[redacted-email]"),
+      redirectTo: `${origin}/auth/confirm?type=signup`,
+    });
+    const mensagemDoProvedor = error.message.toLowerCase();
+    const provedorDeEmailIndisponivel =
+      error.status === 504 ||
+      /gateway timeout|email address not authorized|error sending confirmation email|smtp/.test(
+        mensagemDoProvedor,
+      );
+    if (provedorDeEmailIndisponivel) {
+      await audit({
+        action: "auth.signup_failed",
+        metadata: {
+          email_hash: hashEmail(parsed.data.email),
+          reason: "email_provider_unavailable",
+        },
+        requestId,
+        ip,
+        userAgent,
+      });
+      return { ok: false, error: "email_provider_unavailable" };
+    }
     if (error.status === 429) return { ok: false, error: "rate_limited" };
 
     // ── O BECO SEM SAÍDA DE QUEM JÁ TEM CONTA ────────────────────────────

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { showApiError } from "@/components/feedback/ApiErrorToast";
 import type { Pipeline, Stage } from "@/lib/kanban/types";
+import type { ModoDeCaptura } from "@/lib/webhooks/captura";
 
 export interface WebhookSourceRow {
   id: string;
@@ -15,6 +16,8 @@ export interface WebhookSourceRow {
   default_pipeline_id: string;
   default_stage_id: string;
   redirect_to: string | null;
+  capture_mode: ModoDeCaptura;
+  capture_html: string | null;
   field_map: Record<string, unknown>;
   has_secret: boolean;
   created_at: string;
@@ -37,6 +40,8 @@ export interface CreateWebhookSourceInput {
   default_pipeline_id: string;
   default_stage_id: string;
   redirect_to?: string | null;
+  capture_mode?: ModoDeCaptura;
+  capture_html?: string | null;
 }
 
 const SOURCES_KEY = ["webhook-sources"];
