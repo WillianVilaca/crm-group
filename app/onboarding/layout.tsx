@@ -5,7 +5,7 @@ import { loadOnboardingState } from "@/app/actions/onboarding/_shared";
 import { Stepper } from "./_components/Stepper";
 import { OutrasOrganizacoes } from "./_components/OutrasOrganizacoes";
 import { SkipToEnd } from "./_components/SkipToEnd";
-import { LogotipoDoProduto, SimboloDoProduto } from "@/components/branding/MarcaDoProduto";
+import { GroupLogo } from "@/components/branding/GroupLogo";
 import { branding, marcaEhADoProduto } from "@/lib/branding";
 import { passosVisiveis } from "@/lib/onboarding/passos";
 import { env } from "@/lib/env";
@@ -40,14 +40,21 @@ export default async function OnboardingLayout({ children }: { children: React.R
       <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(circle_at_18%_0%,color-mix(in_srgb,var(--color-accent)_16%,transparent),transparent_48%),radial-gradient(circle_at_88%_10%,color-mix(in_srgb,var(--color-accent)_8%,transparent),transparent_34%)]"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_12%_0%,color-mix(in_srgb,var(--color-accent)_18%,transparent),transparent_42%),radial-gradient(circle_at_92%_2%,color-mix(in_srgb,var(--color-accent)_10%,transparent),transparent_34%)]"
         />
-        <header className="relative border-b border-border/80 bg-bg/80 backdrop-blur-xl">
-          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-5 lg:px-10">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 [background-image:linear-gradient(var(--color-text)_1px,transparent_1px),linear-gradient(90deg,var(--color-text)_1px,transparent_1px)] [mask-image:linear-gradient(to_bottom,black,transparent_48%)] [background-size:56px_56px] opacity-[0.035]"
+        />
+        <header className="relative border-b border-border/80 bg-bg/75 backdrop-blur-xl">
+          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-10 lg:py-5">
             <div className="flex min-w-0 items-center gap-4">
               <div className="shrink-0">
                 {marcaEhADoProduto(marca) ? (
-                  <LogotipoDoProduto nome={marca.name} decorativo className="h-9 w-auto" />
+                  <div className="flex items-center gap-2.5" data-testid="group-brand-logo">
+                    <GroupLogo className="h-10 w-[4.75rem]" decorative />
+                    <span className="text-sm font-bold tracking-[-0.03em] text-text">GroupCRM</span>
+                  </div>
                 ) : marca.logoUrl ? (
                   // A logo configurada pelo administrador deve aparecer no onboarding
                   // desde o primeiro passo, não só depois que o time entra no app.
@@ -63,10 +70,10 @@ export default async function OnboardingLayout({ children }: { children: React.R
                   </div>
                 )}
               </div>
-              <div className="hidden h-8 w-px bg-border sm:block" />
+              <div className="hidden h-9 w-px bg-border sm:block" />
               <div className="min-w-0">
-                <p className="text-[10px] font-semibold tracking-[0.22em] text-accent uppercase">
-                  Configuração inicial
+                <p className="text-[10px] font-semibold tracking-[0.24em] text-accent uppercase">
+                  Configuração inicial · GroupCRM
                 </p>
                 <h1 className="truncate text-sm font-semibold tracking-tight text-text sm:text-base">
                   {activeOrg.name}
@@ -88,7 +95,7 @@ export default async function OnboardingLayout({ children }: { children: React.R
               {isDev ? <SkipToEnd /> : null}
             </div>
           </div>
-          <div className="mx-auto w-full max-w-6xl px-5 pb-4 lg:px-10">
+          <div className="mx-auto w-full max-w-6xl px-5 pb-5 lg:px-10">
             <Stepper passos={passos} />
           </div>
         </header>

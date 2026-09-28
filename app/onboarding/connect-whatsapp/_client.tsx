@@ -10,6 +10,18 @@ import { Button } from "@/components/ui/button";
 import { skipWhatsapp, markWhatsappConfigured } from "@/app/actions/onboarding/skipWhatsapp";
 import { CanalOficialClient } from "@/components/connections/CanalOficialClient";
 import { CanalParceiroClient } from "@/components/connections/CanalParceiroClient";
+import {
+  ArrowBendUpLeft,
+  ArrowsClockwise,
+  CheckCircle,
+  CircleNotch,
+  Phone,
+  PlugsConnected,
+  QrCode,
+  ShieldCheck,
+  Warning,
+  WifiSlash,
+} from "@/lib/ui/icons";
 
 interface Props {
   wahaConfigured: boolean;
@@ -36,13 +48,48 @@ interface Props {
 type Forma = "qr" | "oficial" | "parceiro";
 
 type Status =
-  "INIT" | "STARTING" | "SCAN_QR_CODE" | "WORKING" | "FAILED" | "STOPPED" | "NOT_STARTED" | "ERROR";
+  | "INIT"
+  | "STARTING"
+  | "SCAN_QR_CODE"
+  | "WORKING"
+  | "FAILED"
+  | "STOPPED"
+  | "NOT_STARTED"
+  | "WAHA_NOT_CONFIGURED"
+  | "ERROR";
 
 interface SessionInfo {
   status: Status;
   session: string | null;
   channel_session_id?: string;
   error?: string;
+}
+
+type ApiError = { code?: string; message?: string };
+type ApiEnvelope<T> = { data?: T; error?: ApiError };
+
+/**
+ * Rotas de API nunca deveriam devolver HTML, mas um proxy, uma versão antiga
+ * do deploy ou uma exceção fora do handler pode devolver a página do Next.
+ * Ler texto antes de fazer parse evita transformar `Unexpected token '<'` em
+ * uma mensagem que não ajuda quem está configurando o número.
+ */
+async function lerResposta<T>(res: Response): Promise<ApiEnvelope<T>> {
+  const raw = await res.text();
+  if (!raw.trim()) {
+    return { error: { message: `O servidor respondeu sem conteúdo (HTTP ${res.status}).` } };
+  }
+  try {
+    return JSON.parse(raw) as ApiEnvelope<T>;
+  } catch {
+    return {
+      error: {
+        message:
+          `A conexão respondeu de forma inesperada (HTTP ${res.status}). ` +
+          "Confira se a versão atual do GroupCRM foi publicada e se o WAHA está acessível.",
+      },
+    };
+  }
 }
 
 /**
@@ -75,8 +122,12 @@ function rotuloDoEstado(s: Status, t: (texto: string) => string): string {
       return t("Conectado!");
     case "FAILED":
       return t("O código expirou");
-    default:
+    case "WAHA_NOT_CONFIGURED":
+      return t("WhatsApp ainda não está configurado");
+    case "ERROR":
       return t("Não consegui falar com o WhatsApp");
+    default:
+      return t("A conexão ainda não foi iniciada");
   }
 }
 
@@ -91,8 +142,14 @@ function explicacaoDoEstado(s: Status, t: (texto: string) => string): string {
       return t("O número está no ar. Seguindo para o próximo passo.");
     case "FAILED":
       return t("É normal — ele vale poucos minutos. Dá para gerar outro.");
+    case "WAHA_NOT_CONFIGURED":
+      return t("O conector de WhatsApp ainda não está ligado neste ambiente.");
+    case "ERROR":
+      return t(
+        "O servidor não respondeu agora. Você pode tentar novamente ou continuar e conectar depois.",
+      );
     default:
-      return t("O serviço roda no seu servidor e não respondeu agora.");
+      return t("Vamos preparar o conector para gerar o código de acesso.");
   }
 }
 
@@ -116,13 +173,14 @@ function Escolha({
   onEscolher: (v: Forma) => void;
 }) {
   const marcada = atual === valor;
+  const Icon = valor === "qr" ? Phone : valor === "oficial" ? ShieldCheck : PlugsConnected;
   return (
     <label
       data-testid={`forma-${valor}`}
       data-marcada={marcada ? "sim" : "nao"}
-      className={`group flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-[background-color,border-color,box-shadow,transform] duration-base ${
+      className={`group flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-[background-color,border-color,box-shadow,transform] duration-base ${
         marcada
-          ? "-translate-y-px border-accent bg-accent-soft/70 shadow-md"
+          ? "-translate-y-px border-accent bg-accent-soft/70 shadow-md shadow-accent/10"
           : "border-border/90 bg-surface/55 hover:-translate-y-px hover:border-accent/50 hover:bg-surface-elevated/55"
       }`}
     >
@@ -135,8 +193,25 @@ function Escolha({
         className="mt-1 h-4 w-4 shrink-0 accent-accent"
         aria-label={titulo}
       />
-      <span className="space-y-1">
-        <span className="block text-sm font-semibold text-text">{titulo}</span>
+      <span
+        aria-hidden
+        className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors ${
+          marcada
+            ? "border-accent/40 bg-accent text-accent-foreground"
+            : "border-border bg-bg/80 text-text-muted group-hover:border-accent/40 group-hover:text-accent"
+        }`}
+      >
+        <Icon size={18} weight="duotone" />
+      </span>
+      <span className="min-w-0 space-y-1">
+        <span className="flex flex-wrap items-center gap-2 text-sm font-semibold text-text">
+          {titulo}
+          {valor === "qr" && (
+            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-accent uppercase">
+              Mais simples
+            </span>
+          )}
+        </span>
         <span className="block text-xs leading-relaxed text-text-muted">{corpo}</span>
       </span>
     </label>
@@ -151,9 +226,9 @@ function VoltarParaEscolha({ onVoltar }: { onVoltar: () => void }) {
       type="button"
       data-testid="voltar-para-escolha"
       onClick={onVoltar}
-      className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+      className="inline-flex items-center gap-1.5 text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
     >
-      ← {t("Escolher outra forma")}
+      <ArrowBendUpLeft size={14} /> {t("Escolher outra forma")}
     </button>
   );
 }
@@ -218,7 +293,7 @@ function Saidas({ status, sessionName }: { status: Status; sessionName: string }
 
 export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPodeReceber }: Props) {
   const t = useT();
-  const [pending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [forma, setForma] = useState<Forma | null>(null);
   const createKey = useRef<string | null>(null);
   const restartKey = useRef<string | null>(null);
@@ -247,9 +322,9 @@ export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPode
           method: "POST",
           headers: { "Idempotency-Key": (createKey.current ??= randomId()) },
         });
-        const json = (await res.json()) as { data?: SessionInfo; error?: { message?: string } };
+        const json = await lerResposta<SessionInfo>(res);
         if (cancelled) return;
-        if (json.data) {
+        if (res.ok && json.data) {
           setInfo(json.data);
           return;
         }
@@ -261,12 +336,18 @@ export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPode
         setInfo({
           status: "ERROR",
           session: sessionName,
-          error: json.error?.message
-            ? t(json.error.message)
-            : `${t("o servidor respondeu")} ${res.status}`,
+          error: json.error?.message ?? `${t("O servidor respondeu")} ${res.status}`,
         });
-      } catch (err) {
-        if (!cancelled) setInfo({ status: "ERROR", session: sessionName, error: String(err) });
+      } catch {
+        if (!cancelled) {
+          setInfo({
+            status: "ERROR",
+            session: sessionName,
+            error: t(
+              "Não consegui ler a resposta do servidor. Tente novamente em alguns segundos.",
+            ),
+          });
+        }
       } finally {
         if (!cancelled) setBusy(false);
       }
@@ -288,7 +369,7 @@ export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPode
     const id = setInterval(async () => {
       try {
         const res = await fetch("/api/v1/onboarding/whatsapp/session");
-        const json = (await res.json()) as { data?: SessionInfo };
+        const json = await lerResposta<SessionInfo>(res);
         if (json.data) {
           setInfo(json.data);
           if (json.data.status === "SCAN_QR_CODE") setQrTick((t) => t + 1);
@@ -302,7 +383,7 @@ export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPode
               ? {
                   status: "ERROR",
                   session: sessionName,
-                  error: `o servidor respondeu ${res.status}`,
+                  error: json.error?.message ?? `${t("O servidor respondeu")} ${res.status}`,
                 }
               : antes,
           );
@@ -310,7 +391,11 @@ export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPode
       } catch {
         setInfo((antes) =>
           antes.status === "INIT" || antes.status === "STARTING"
-            ? { status: "ERROR", session: sessionName, error: "não consegui falar com o servidor" }
+            ? {
+                status: "ERROR",
+                session: sessionName,
+                error: t("Não consegui falar com o servidor. Confira a conexão e tente novamente."),
+              }
             : antes,
         );
       }
@@ -341,19 +426,29 @@ export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPode
         method: "POST",
         headers: { "Idempotency-Key": (restartKey.current ??= randomId()) },
       });
-      const json = (await res.json()) as { data?: SessionInfo };
-      if (json.data) {
+      const json = await lerResposta<SessionInfo>(res);
+      if (res.ok && json.data) {
         setInfo(json.data);
         restartKey.current = null;
       } else toast.error(t("Não consegui gerar outro código. Tente de novo em alguns segundos."));
     } catch {
-      toast.error(t("Não consegui falar com o servidor. Confira sua conexão e tente de novo."));
+      toast.error(
+        t("Não consegui ler a resposta do servidor. Confira sua conexão e tente de novo."),
+      );
     } finally {
       setBusy(false);
     }
   }
 
   const showQr = wahaConfigured && status === "SCAN_QR_CODE";
+  const StatusIcon =
+    status === "WAHA_NOT_CONFIGURED"
+      ? WifiSlash
+      : status === "ERROR" || status === "NOT_STARTED" || status === "STOPPED"
+        ? Warning
+        : status === "WORKING"
+          ? CheckCircle
+          : QrCode;
 
   // A PERGUNTA. Enquanto ninguém respondeu, nada é criado e nada é pedido —
   // é o único estado em que esta tela não tem efeito colateral nenhum.
@@ -464,12 +559,23 @@ export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPode
             em "INIT", sem código, sem erro e sem próximo passo. A pessoa olha
             uma palavra que não significa nada e não sabe se espera ou desiste.
           */}
-          <p className="text-sm font-semibold text-text">
-            {rotuloDoEstado(busy ? "STARTING" : status, t)}
-          </p>
-          <p className="mt-1 text-xs leading-relaxed text-text-muted">
-            {explicacaoDoEstado(busy ? "STARTING" : status, t)}
-          </p>
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+              {busy ? (
+                <CircleNotch className="animate-spin" size={19} />
+              ) : (
+                <StatusIcon size={19} weight="duotone" />
+              )}
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-text">
+                {rotuloDoEstado(busy ? "STARTING" : status, t)}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-text-muted">
+                {explicacaoDoEstado(busy ? "STARTING" : status, t)}
+              </p>
+            </div>
+          </div>
 
           {/*
             O CÓDIGO EM SI. `showQr` já existia calculado (e o `qrTick` já era
@@ -514,8 +620,8 @@ export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPode
           )}
 
           {status === "WORKING" && (
-            <p className="mt-3 text-sm font-medium text-emerald-700 dark:text-emerald-400">
-              ✓ {t("Conectado! Avançando…")}
+            <p className="mt-4 flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+              <CheckCircle size={18} weight="fill" /> {t("Conectado! Avançando…")}
             </p>
           )}
 
@@ -536,15 +642,25 @@ export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPode
             </div>
           )}
 
-          {(status === "ERROR" || status === "NOT_STARTED" || status === "STOPPED") && (
-            <div className="mt-3 space-y-2">
-              <p className="text-sm">
-                {t(
-                  "O serviço de WhatsApp desta instalação não respondeu. Ele roda no seu servidor, junto com o resto do sistema — quem instalou consegue religá-lo.",
-                )}
+          {(status === "ERROR" ||
+            status === "NOT_STARTED" ||
+            status === "STOPPED" ||
+            status === "WAHA_NOT_CONFIGURED") && (
+            <div className="mt-4 space-y-3 rounded-xl border border-warning/35 bg-warning-bg/35 p-4">
+              <p className="flex items-start gap-2 text-sm text-text">
+                <Warning className="mt-0.5 shrink-0 text-warning" size={18} weight="duotone" />
+                <span>
+                  {status === "WAHA_NOT_CONFIGURED"
+                    ? t(
+                        "O conector WAHA ainda não está configurado neste ambiente. Você pode seguir e conectar o número depois em Conexões.",
+                      )
+                    : t(
+                        "O serviço de WhatsApp desta instalação não respondeu. Ele roda no seu servidor, junto com o resto do sistema — quem instalou consegue religá-lo.",
+                      )}
+                </span>
               </p>
               {info.error && (
-                <p className="text-xs text-muted-foreground">
+                <p className="pl-7 text-xs leading-relaxed text-text-muted">
                   {t("Detalhe técnico:")} <code className="break-all">{info.error}</code>
                 </p>
               )}
@@ -555,7 +671,13 @@ export function ConnectWhatsappClient({ wahaConfigured, sessionName, oficialPode
                 disabled={busy}
                 onClick={restartSession}
               >
-                {busy ? t("Tentando…") : t("Tentar de novo")}
+                {busy ? (
+                  t("Tentando…")
+                ) : (
+                  <>
+                    <ArrowsClockwise size={16} /> {t("Tentar de novo")}
+                  </>
+                )}
               </Button>
             </div>
           )}

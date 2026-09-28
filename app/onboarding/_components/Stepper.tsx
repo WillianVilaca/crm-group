@@ -34,49 +34,61 @@ export function Stepper({ passos }: { passos: PassoVisivel[] }) {
   const t = useT();
   const pathname = usePathname() ?? "";
   const idx = passos.findIndex((p) => pathname.includes(`/${p.segmento}`));
+  const passoAtual = idx >= 0 ? idx + 1 : 1;
   const progresso = idx > 0 && passos.length > 1 ? `${(idx / (passos.length - 1)) * 100}%` : "0%";
 
   return (
-    <ol
-      aria-label="onboarding steps"
-      className="relative flex w-full [scrollbar-width:none] items-start gap-2 overflow-x-auto px-1 pt-2 pb-1 [&::-webkit-scrollbar]:hidden"
-    >
-      <span aria-hidden className="absolute top-[22px] right-6 left-6 h-px bg-border" />
-      <span
-        aria-hidden
-        className="absolute top-[22px] left-6 h-px bg-accent transition-[width] duration-slow ease-out"
-        style={{ width: `calc(${progresso} - 12px)` }}
-      />
-      {passos.map((p, i) => {
-        const isActive = i === idx;
-        return (
-          <li
-            key={p.segmento}
-            aria-current={isActive ? "step" : undefined}
-            className="relative z-10 flex min-w-[86px] flex-1 flex-col items-center text-xs sm:min-w-0"
-          >
-            <div
-              className={cn(
-                "flex h-7 w-7 items-center justify-center rounded-full border bg-bg text-[11px] font-semibold shadow-xs transition-[background-color,border-color,color,transform] duration-base",
-                isActive &&
-                  "h-8 w-8 -translate-y-px border-accent bg-accent text-accent-foreground shadow-md",
-                !isActive && p.cumprido && "border-accent/60 bg-accent-soft text-accent",
-                !isActive && !p.cumprido && "border-border-strong text-text-subtle",
-              )}
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3 text-[10px] font-semibold tracking-[0.2em] text-text-subtle uppercase">
+        <span>Seu setup</span>
+        <span className="font-mono tracking-normal text-text-muted">
+          Etapa {passoAtual} de {passos.length}
+        </span>
+      </div>
+      <ol
+        aria-label="onboarding steps"
+        className="relative flex w-full [scrollbar-width:none] items-start gap-2 overflow-x-auto px-1 pt-2 pb-1 [&::-webkit-scrollbar]:hidden"
+      >
+        <span
+          aria-hidden
+          className="absolute top-[22px] right-6 left-6 h-px rounded-full bg-border"
+        />
+        <span
+          aria-hidden
+          className="absolute top-[22px] left-6 h-px rounded-full bg-accent transition-[width] duration-slow ease-out"
+          style={{ width: `calc(${progresso} - 12px)` }}
+        />
+        {passos.map((p, i) => {
+          const isActive = i === idx;
+          return (
+            <li
+              key={p.segmento}
+              aria-current={isActive ? "step" : undefined}
+              className="relative z-10 flex min-w-[86px] flex-1 flex-col items-center text-xs sm:min-w-0"
             >
-              {!isActive && p.cumprido ? "✓" : i + 1}
-            </div>
-            <span
-              className={cn(
-                "mt-2 max-w-[108px] truncate text-center text-[11px] leading-tight sm:max-w-[130px] sm:text-xs",
-                isActive ? "font-semibold text-text" : "text-text-muted",
-              )}
-            >
-              {t(p.rotulo)}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
+              <div
+                className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded-full border bg-bg text-[11px] font-semibold shadow-xs transition-[background-color,border-color,color,transform] duration-base",
+                  isActive &&
+                    "h-8 w-8 -translate-y-px border-accent bg-accent text-accent-foreground shadow-md shadow-accent/20",
+                  !isActive && p.cumprido && "border-accent/60 bg-accent-soft text-accent",
+                  !isActive && !p.cumprido && "border-border-strong text-text-subtle",
+                )}
+              >
+                {!isActive && p.cumprido ? "✓" : i + 1}
+              </div>
+              <span
+                className={cn(
+                  "mt-2 max-w-[108px] truncate text-center text-[11px] leading-tight sm:max-w-[130px] sm:text-xs",
+                  isActive ? "font-semibold text-text" : "text-text-muted",
+                )}
+              >
+                {t(p.rotulo)}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }

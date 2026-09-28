@@ -18,6 +18,7 @@ import {
 import { sendOnboardingInvites } from "@/app/actions/onboarding/sendOnboardingInvites";
 import { ROLES, type Role } from "@/lib/schemas/team";
 import { ROTULO_DO_PAPEL } from "@/lib/auth/types";
+import { UsersThree } from "@/lib/ui/icons";
 
 export function InviteTeamForm() {
   const t = useT();
@@ -69,7 +70,18 @@ export function InviteTeamForm() {
   };
 
   return (
-    <div className="space-y-4 rounded-lg border bg-background p-6">
+    <div className="space-y-6 rounded-2xl border border-border/90 bg-surface/90 p-5 shadow-lg sm:p-7">
+      <div className="flex items-start gap-3 border-b border-border/80 pb-5">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+          <UsersThree size={20} weight="duotone" />
+        </span>
+        <div>
+          <p className="text-sm font-semibold text-text">Monte sua equipe de atendimento</p>
+          <p className="mt-1 text-xs leading-relaxed text-text-muted">
+            Um e-mail por linha. Você poderá ajustar permissões e convidar mais pessoas depois.
+          </p>
+        </div>
+      </div>
       <div className="space-y-2">
         <Label htmlFor="emails">{t("E-mail de quem vai trabalhar com ele")}</Label>
         <Textarea
@@ -100,10 +112,14 @@ export function InviteTeamForm() {
             ))}
           </SelectContent>
         </Select>
+        <p className="text-xs text-text-subtle">
+          Atendentes cuidam dos leads e conversas; o administrador mantém a configuração da
+          operação.
+        </p>
       </div>
 
       {undelivered.length > 0 && (
-        <div className="space-y-3 rounded-md border border-amber-300/60 bg-amber-50 p-4 dark:border-amber-500/30 dark:bg-amber-950/20">
+        <div className="space-y-3 rounded-xl border border-warning/40 bg-warning-bg/45 p-4">
           <p className="text-sm font-medium">
             {t(
               "Esta instalação não envia e-mail. Os convites estão prontos — copie o link de cada pessoa e mande por onde você já fala com ela:",
@@ -123,7 +139,10 @@ export function InviteTeamForm() {
                   onClick={() => {
                     void copyToClipboard(u.accept_url).then((ok) => {
                       if (ok) toast.success(t("Link copiado."));
-                      else toast.error(t("Não consegui copiar — selecione e copie o link manualmente."));
+                      else
+                        toast.error(
+                          t("Não consegui copiar — selecione e copie o link manualmente."),
+                        );
                     });
                   }}
                 >
@@ -133,18 +152,27 @@ export function InviteTeamForm() {
             ))}
           </ul>
           <div className="flex sm:justify-end">
-            <Button type="button" onClick={() => (window.location.href = "/onboarding")} className="w-full sm:w-auto">
+            <Button
+              type="button"
+              onClick={() => (window.location.href = "/onboarding")}
+              className="w-full sm:w-auto"
+            >
               {t("Continuar")}
             </Button>
           </div>
         </div>
       )}
 
-      <div className="flex flex-wrap justify-between gap-2 pt-2">
+      <div className="flex flex-col-reverse justify-between gap-3 border-t border-border/80 pt-5 sm:flex-row sm:items-center">
         <Button type="button" variant="ghost" disabled={pending} onClick={() => submit(true)}>
           {t("Pular por enquanto")}
         </Button>
-        <Button type="button" disabled={pending} onClick={() => submit(false)}>
+        <Button
+          type="button"
+          className="sm:min-w-40"
+          disabled={pending}
+          onClick={() => submit(false)}
+        >
           {pending ? t("Enviando...") : t("Enviar convites")}
         </Button>
       </div>
