@@ -37,7 +37,7 @@ export default async function OnboardingLayout({ children }: { children: React.R
 
   return (
     <IdiomaProvider locale={user.idioma}>
-      <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg">
+      <div className="groupcrm-onboarding relative flex min-h-screen flex-col overflow-hidden bg-bg">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_12%_0%,color-mix(in_srgb,var(--color-accent)_18%,transparent),transparent_42%),radial-gradient(circle_at_92%_2%,color-mix(in_srgb,var(--color-accent)_10%,transparent),transparent_34%)]"

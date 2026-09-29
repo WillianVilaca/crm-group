@@ -427,6 +427,87 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+   GroupCRM · onboarding
+
+   O produto nasceu com neutros greige para o design system geral, mas o
+   primeiro acesso é a apresentação da marca. Esta superfície fica azul-
+   grafite, fria e mais próxima da logo Group, sem trocar os tokens globais de
+   outras áreas que ainda usam a régua neutra original.
+   ───────────────────────────────────────────────────────────────────────── */
+.groupcrm-onboarding {
+  --color-bg: #091521;
+  --color-surface: #102131;
+  --color-surface-elevated: #172c3f;
+  --color-overlay: rgba(3, 12, 22, 0.72);
+
+  --color-text: #f1f8fc;
+  --color-text-muted: #9bb0bf;
+  --color-text-subtle: #718a9b;
+
+  --color-border: #25445a;
+  --color-border-strong: #3a6079;
+
+  --color-accent-fg: #06131e;
+  --color-accent-soft: rgba(39, 193, 237, 0.15);
+
+  /* Aliases do Tailwind v4: ficam locais para evitar que uma variável
+     calculada no :root reintroduza o greige dentro de um componente filho. */
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+  --color-primary: var(--color-accent);
+  --color-primary-foreground: var(--color-accent-fg);
+  --color-secondary: var(--color-surface-elevated);
+  --color-secondary-foreground: var(--color-text);
+  --color-muted: var(--color-surface-elevated);
+  --color-muted-foreground: var(--color-text-muted);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-text);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-text);
+  --color-accent-foreground: var(--color-accent-fg);
+  --color-input: var(--color-border);
+  --color-ring: var(--color-accent-300);
+  --color-destructive: var(--color-error);
+  --color-destructive-foreground: #ffffff;
+
+  --color-neutral-50: #f1f8fc;
+  --color-neutral-100: #dcecf4;
+  --color-neutral-200: #b4cbd8;
+  --color-neutral-300: #8fa9b9;
+  --color-neutral-400: #6d899b;
+  --color-neutral-500: #526f82;
+  --color-neutral-600: #3d5a6d;
+  --color-neutral-700: #2c485c;
+  --color-neutral-800: #1d3447;
+  --color-neutral-900: #102131;
+  --color-neutral-950: #06101a;
+
+  --shadow-xs: 0 1px 2px 0 rgba(1, 8, 15, 0.28);
+  --shadow-sm: 0 1px 2px 0 rgba(1, 8, 15, 0.34), 0 1px 1px 0 rgba(1, 8, 15, 0.18);
+  --shadow-md: 0 4px 12px -2px rgba(1, 8, 15, 0.42), 0 2px 4px -1px rgba(1, 8, 15, 0.24);
+  --shadow-lg: 0 12px 32px -6px rgba(1, 8, 15, 0.52), 0 4px 12px -2px rgba(1, 8, 15, 0.3);
+  --shadow-xl: 0 24px 48px -12px rgba(1, 8, 15, 0.62), 0 8px 16px -4px rgba(1, 8, 15, 0.36);
+
+  /* Compatibilidade com componentes que ainda usam os nomes shadcn antigos. */
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text);
+  --primary: var(--color-accent);
+  --primary-foreground: var(--color-accent-fg);
+  --secondary: var(--color-surface-elevated);
+  --secondary-foreground: var(--color-text);
+  --muted: var(--color-surface-elevated);
+  --muted-foreground: var(--color-text-muted);
+  --accent-foreground: var(--color-accent-fg);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--color-accent-300);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
    Ponte token → utilitário (o que era `theme.extend` no `tailwind.config.ts`).
 
    `@theme inline` e não `@theme`: com `inline`, o utilitário recebe o
