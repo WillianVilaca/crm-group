@@ -9,7 +9,7 @@ import { toggleSidebar } from "@/app/actions/shell/toggleSidebar";
 import { useAuth } from "@/hooks/auth/AuthProvider";
 import { ConnectionHealthDot } from "@/components/connections/ConnectionHealthDot";
 import { VersionFooter } from "@/components/shell/VersionFooter";
-import { LogotipoDoProduto, SimboloDoProduto } from "@/components/branding/MarcaDoProduto";
+import { GroupLogo } from "@/components/branding/GroupLogo";
 import { marcaEhADoProduto } from "@/lib/branding";
 import { useMarcaDaInstalacao } from "@/lib/branding/contexto";
 import { GRUPO_NO_RODAPE, sidebarGroups } from "@/lib/navigation/registry";
@@ -149,12 +149,16 @@ export function SidebarContent({
             <img src={logo} alt={nome} className="h-7 w-auto max-w-[10rem] object-contain" />
           </div>
         ) : marcaDoProduto ? (
-          // O desenho do produto, inline (ver `components/branding/MarcaDoProduto.tsx`):
-          // logotipo com a barra aberta, só o símbolo com ela recolhida.
+          // A marca Group é a identidade da instalação. O símbolo "D" fica
+          // reservado para o fallback de marca white-label; no GroupCRM a
+          // fachada precisa reconhecer a empresa desde o primeiro olhar.
           collapsed ? (
-            <SimboloDoProduto nome={nome} className="h-8 w-8" />
+            <GroupLogo className="h-8 w-8" decorative />
           ) : (
-            <LogotipoDoProduto nome={nome} className="h-8 w-auto" />
+            <div className="flex items-center gap-2.5" data-testid="group-brand-logo">
+              <GroupLogo className="h-8 w-11" decorative />
+              <span className="text-sm font-bold tracking-[-0.04em] text-text">{nome}</span>
+            </div>
           )
         ) : (
           <span className={cn("font-semibold tracking-tight", collapsed && "sr-only")}>{nome}</span>

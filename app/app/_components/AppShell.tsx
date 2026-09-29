@@ -40,7 +40,7 @@ export function AppShell({ sidebarCollapsed, podeAtender, children }: AppShellPr
   // decide a faixa que o conteúdo perde, e ninguém mais mede isso por fora.
   const ocupacaoDoRodape = useOcupacaoDoRodape();
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="groupcrm-app relative flex min-h-screen w-full bg-background">
       <BarraDeProgressoNavegacao />
       <div className="hidden md:block">
         <Sidebar collapsed={sidebarCollapsed} />

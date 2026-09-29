@@ -7,7 +7,7 @@ import { SearchTrigger } from "./SearchTrigger";
 
 export function TopBar() {
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b bg-background/95 px-3 backdrop-blur md:gap-4 md:px-6">
+    <header className="relative sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-border/80 bg-card/90 px-3 backdrop-blur-xl after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-accent/45 after:to-transparent md:gap-4 md:px-6">
       <div className="flex min-w-0 items-center gap-2">
         <MobileSidebar />
         <TenantSwitcher />

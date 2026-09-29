@@ -26,6 +26,7 @@ import { NextResponse } from "next/server";
 import { loadAuthUser, resolveActiveOrg } from "@/lib/auth/server";
 import { ARCHIVED_AT, queryTolerantToMissingArchived } from "@/lib/channels/archived";
 import { createClient } from "@/lib/supabase/server";
+import { normalizarBaseUrlWaha } from "@/lib/waha/client";
 
 export const dynamic = "force-dynamic";
 
@@ -81,7 +82,7 @@ export async function GET(
     });
   }
 
-  const baseUrl = process.env.WAHA_API_BASE_URL;
+  const baseUrl = process.env.WAHA_API_BASE_URL ? normalizarBaseUrlWaha(process.env.WAHA_API_BASE_URL) : null;
   const apiKey = process.env.WAHA_API_KEY;
   if (!baseUrl || !apiKey || apiKey === "dev_plaintext_change_me") {
     return new NextResponse(null, { status: 503 });
@@ -91,6 +92,12 @@ export async function GET(
     `${baseUrl}/api/${encodeURIComponent(session.waha_session_name)}/auth/qr?format=image`,
     { headers: { "X-Api-Key": apiKey }, cache: "no-store" },
   );
+  if (upstream.status === 422) {
+    return new NextResponse(null, {
+      status: 204,
+      headers: { "cache-control": "no-store, max-age=0", "x-waha-status": "422" },
+    });
+  }
   if (!upstream.ok) {
     return new NextResponse(null, {
       status: upstream.status,

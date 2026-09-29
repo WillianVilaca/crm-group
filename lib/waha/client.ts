@@ -138,6 +138,74 @@ const sessionSnapshotSchema = z.object({
 export type WahaSessionSnapshot = z.infer<typeof sessionSnapshotSchema>;
 type SessionOperation = "create" | "start" | "stop" | "logout" | "delete";
 
+const EVENTOS_DO_WEBHOOK_CRM = [
+  "message.any",
+  "message.ack",
+  "message.edited",
+  "message.revoked",
+  "session.status",
+  "state.change",
+] as const;
+
+/** Normaliza a porta interna usada pelo serviço WAHA no EasyPanel. */
+export function normalizarBaseUrlWaha(url: string): string {
+  const normalizada = url.trim().replace(/\/+$/, "");
+  return normalizada.toLowerCase() === "http://waha:3000" ? "http://waha:80" : normalizada;
+}
+
+type WahaWebhookConfig = {
+  url: string;
+  events: readonly string[];
+  hmac?: { key: string };
+  retries: { delaySeconds: number; attempts: number };
+};
+
+function webhookDoCrm(): WahaWebhookConfig | null {
+  const base = process.env.WAHA_WEBHOOK_BASE_URL?.trim().replace(/\/+$/, "");
+  if (!base) return null;
+
+  const hmac = process.env.WAHA_HMAC_SECRET?.trim();
+  return {
+    url: `${base}/api/v1/webhooks/waha`,
+    events: EVENTOS_DO_WEBHOOK_CRM,
+    ...(hmac && hmac.length >= 16 ? { hmac: { key: hmac } } : {}),
+    retries: { delaySeconds: 2, attempts: 3 },
+  };
+}
+
+function webhookTemContratoAtual(value: unknown, desejado: WahaWebhookConfig): boolean {
+  if (!Array.isArray(value)) return false;
+  const encontrado = value.find(
+    (item): item is Record<string, unknown> =>
+      typeof item === "object" && item !== null && (item as Record<string, unknown>).url === desejado.url,
+  );
+  if (!encontrado) return false;
+  const eventosEncontrados = encontrado.events;
+  if (
+    !Array.isArray(eventosEncontrados) ||
+    !eventosEncontrados.every((event): event is string => typeof event === "string")
+  ) {
+    return false;
+  }
+  if (!desejado.events.every((event) => eventosEncontrados.includes(event))) return false;
+
+  if (desejado.hmac) {
+    const hmac = encontrado.hmac;
+    return typeof hmac === "object" && hmac !== null && (hmac as Record<string, unknown>).key === desejado.hmac.key;
+  }
+  return true;
+}
+
+function acrescentarWebhookDoCrm(value: unknown, desejado: WahaWebhookConfig): unknown[] {
+  const existentes = Array.isArray(value) ? value : [];
+  return [
+    ...existentes.filter(
+      (item) => !(typeof item === "object" && item !== null && (item as Record<string, unknown>).url === desejado.url),
+    ),
+    desejado,
+  ];
+}
+
 /** Mantém o prefixo/status que checkHealth e os callers já classificam. */
 export class WahaSessionError extends Error {
   constructor(
@@ -241,10 +309,18 @@ export class WahaClient {
 
   /** Porta granular para a futura reserva: created nunca significa ownership. */
   async createSession(name: string): Promise<{ created: boolean; session: WahaSessionSnapshot }> {
+    const webhook = webhookDoCrm();
     const res = await this.fetchComTeto(`${this.baseUrl}/api/sessions`, {
       method: "POST",
       headers: { "X-Api-Key": this.apiKey, "Content-Type": "application/json" },
-      body: JSON.stringify({ name, start: false, config: { ignore: CONVERSAS_IGNORADAS } }),
+      body: JSON.stringify({
+        name,
+        start: false,
+        config: {
+          ignore: CONVERSAS_IGNORADAS,
+          ...(webhook ? { webhooks: [webhook] } : {}),
+        },
+      }),
     });
     if (!res.ok && !knownSessionConflict(await res.json().catch(() => null), res.status, "create", name)) {
       throw new WahaSessionError("create", res.status);
@@ -358,7 +434,14 @@ export class WahaClient {
       const sessao = parsed.data;
       if (!sessao.config) return;
 
-      const config = { ...sessao.config, ignore: CONVERSAS_IGNORADAS };
+      const webhook = webhookDoCrm();
+      const config = {
+        ...sessao.config,
+        ignore: CONVERSAS_IGNORADAS,
+        ...(webhook
+          ? { webhooks: acrescentarWebhookDoCrm(sessao.config.webhooks, webhook) }
+          : {}),
+      };
       // Já está como queremos: não reiniciar a sessão à toa. Este caminho roda
       // em TODA reconexão, e um restart desnecessário por rodada seria pior que
       // o gasto que ele evita.
@@ -372,7 +455,8 @@ export class WahaClient {
         Object.entries(CONVERSAS_IGNORADAS).every(
           ([k, v]) => (sessao.config!.ignore as Record<string, unknown>)[k] === v,
         );
-      if (jaConvergida) return;
+      const webhookJaConvergido = !webhook || webhookTemContratoAtual(sessao.config.webhooks, webhook);
+      if (jaConvergida && webhookJaConvergido) return;
 
       const res = await this.fetchComTeto(url, {
         method: "PUT",
@@ -657,5 +741,5 @@ export function getWahaClient(): WahaClient | null {
   const url = process.env.WAHA_API_BASE_URL;
   const key = process.env.WAHA_API_KEY;
   if (!url || !key || key === "dev_plaintext_change_me") return null;
-  return new WahaClient(url, key);
+  return new WahaClient(normalizarBaseUrlWaha(url), key);
 }

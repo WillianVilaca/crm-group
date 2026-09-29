@@ -36,7 +36,8 @@ export class ChannelConnectionError extends Error {
     super(code);
   }
 }
-type Transport = Pick<WahaClient, "createSession" | "startExistingSession" | "stopSession">;
+type Transport = Pick<WahaClient, "createSession" | "startExistingSession" | "stopSession"> &
+  Partial<Pick<WahaClient, "convergirConfigDaSessao">>;
 export interface ConnectChannelInput {
   organizationId: string;
   idempotencyKey: string;
@@ -139,6 +140,11 @@ export async function connectWahaChannel(
     const creation = await waha.createSession(channel.waha_session_name);
     created = creation.created;
     if (created) await finish("remote_created");
+    // Sessões criadas antes do cadastro explícito de webhooks podem estar
+    // conectadas e saudáveis, mas sem entregar eventos ao CRM. A convergência
+    // lê a configuração completa, preserva integrações existentes e só faz PUT
+    // quando falta o webhook do GroupCRM.
+    await waha.convergirConfigDaSessao?.(channel.waha_session_name);
     const remote = await waha.startExistingSession(channel.waha_session_name);
     if (
       remote.name !== channel.waha_session_name ||

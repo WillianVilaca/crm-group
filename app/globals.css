@@ -508,6 +508,133 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+   GroupCRM · app operacional
+
+   O onboarding já tinha uma camada azul-fria, mas o shell autenticado ainda
+   herdava o greige do projeto-base. Este escopo dá ao Inbox uma assinatura
+   própria: azul-noite, ciano de ação e superfícies com contraste de painel —
+   sem alterar a régua global usada pelo showcase e pelas telas white-label.
+   ───────────────────────────────────────────────────────────────────────── */
+html[data-theme="light"] .groupcrm-app {
+  --color-bg: #eef4f7;
+  --color-surface: #fbfdfe;
+  --color-surface-elevated: #e4eef3;
+  --color-overlay: rgba(9, 30, 45, 0.34);
+  --color-text: #102331;
+  --color-text-muted: #4e6878;
+  --color-text-subtle: #708795;
+  --color-border: #d2e1e8;
+  --color-border-strong: #b7cfdc;
+  --color-accent: #087eb7;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: #d9f2fa;
+  --color-accent-hover: #06618e;
+  --color-success: #16836d;
+  --color-success-bg: rgba(22, 131, 109, 0.12);
+  --color-success-fg: #126652;
+  --color-warning: #a96725;
+  --color-warning-bg: rgba(169, 103, 37, 0.13);
+  --color-warning-fg: #7f4a18;
+  --color-error: #b34e58;
+  --color-error-bg: rgba(179, 78, 88, 0.12);
+  --color-error-fg: #8d3540;
+  --color-info: #287b9e;
+  --color-info-bg: rgba(40, 123, 158, 0.12);
+  --color-info-fg: #1d5d78;
+  --color-neutral-500: #708795;
+  --color-neutral-600: #4e6878;
+  --color-neutral-700: #315064;
+  --color-neutral-800: #1e394c;
+  --color-neutral-900: #102331;
+  --color-neutral-950: #07141d;
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text);
+  --primary: var(--color-accent);
+  --primary-foreground: var(--color-accent-fg);
+  --secondary: var(--color-surface-elevated);
+  --secondary-foreground: var(--color-text);
+  --muted: var(--color-surface-elevated);
+  --muted-foreground: var(--color-text-muted);
+  --accent-foreground: var(--color-accent-fg);
+  --destructive: var(--color-error);
+  --destructive-foreground: #ffffff;
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: #087eb7;
+  background-image:
+    radial-gradient(circle at 78% -10%, rgba(39, 193, 237, 0.14), transparent 30rem),
+    linear-gradient(rgba(16, 35, 49, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 35, 49, 0.035) 1px, transparent 1px);
+  background-size: auto, 36px 36px, 36px 36px;
+}
+
+html[data-theme="dark"] .groupcrm-app {
+  --color-bg: #07141d;
+  --color-surface: #0d1d2a;
+  --color-surface-elevated: #132b3d;
+  --color-overlay: rgba(1, 9, 15, 0.72);
+  --color-text: #edf7fb;
+  --color-text-muted: #9bb4c3;
+  --color-text-subtle: #718d9d;
+  --color-border: #204055;
+  --color-border-strong: #2e5b73;
+  --color-accent: #31c5ed;
+  --color-accent-fg: #06131e;
+  --color-accent-soft: rgba(49, 197, 237, 0.14);
+  --color-accent-hover: #78dcf5;
+  --color-success: #5ed0ad;
+  --color-success-bg: rgba(94, 208, 173, 0.14);
+  --color-success-fg: #8ce4c8;
+  --color-warning: #e0a15e;
+  --color-warning-bg: rgba(224, 161, 94, 0.14);
+  --color-warning-fg: #f1bd80;
+  --color-error: #f08188;
+  --color-error-bg: rgba(240, 129, 136, 0.14);
+  --color-error-fg: #ffadb1;
+  --color-info: #7cc9e8;
+  --color-info-bg: rgba(124, 201, 232, 0.14);
+  --color-info-fg: #a8def0;
+  --color-neutral-500: #557487;
+  --color-neutral-600: #375a6f;
+  --color-neutral-700: #26465a;
+  --color-neutral-800: #173344;
+  --color-neutral-900: #0d1d2a;
+  --color-neutral-950: #040b11;
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text);
+  --primary: var(--color-accent);
+  --primary-foreground: var(--color-accent-fg);
+  --secondary: var(--color-surface-elevated);
+  --secondary-foreground: var(--color-text);
+  --muted: var(--color-surface-elevated);
+  --muted-foreground: var(--color-text-muted);
+  --accent-foreground: var(--color-accent-fg);
+  --destructive: var(--color-error);
+  --destructive-foreground: #ffffff;
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: #31c5ed;
+  background-image:
+    radial-gradient(circle at 78% -10%, rgba(49, 197, 237, 0.13), transparent 30rem),
+    linear-gradient(rgba(237, 247, 251, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(237, 247, 251, 0.035) 1px, transparent 1px);
+  background-size: auto, 36px 36px, 36px 36px;
+}
+
+.groupcrm-app > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
    Ponte token → utilitário (o que era `theme.extend` no `tailwind.config.ts`).
 
    `@theme inline` e não `@theme`: com `inline`, o utilitário recebe o
