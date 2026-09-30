@@ -18,6 +18,7 @@ import { parseWahaMessageId, wahaEchoExternalIds } from "@/lib/waha/message-id";
 import { resolveWahaChatId } from "@/lib/waha/send";
 import type { FetchedMedia } from "@/lib/messaging/media/types";
 import { DETALHE_CREDENCIAL_RECUSADA } from "../health";
+import { wahaHistory } from "./waha-history";
 import type { ChannelAdapter, ChannelHealth, OutboundEnvelope, RecipientInput } from "../types";
 
 /**
@@ -41,6 +42,7 @@ export function statusHttpDoErroWaha(msg: string): number | null {
 
 export const wahaAdapter: ChannelAdapter = {
   provider: "waha",
+  history: wahaHistory,
 
   resolveRecipient(input: RecipientInput): string | null {
     return resolveWahaChatId(input);

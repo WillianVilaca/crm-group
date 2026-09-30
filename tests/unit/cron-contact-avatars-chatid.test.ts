@@ -34,7 +34,7 @@ vi.mock("@/lib/channels", () => ({
   getAdapter: () => ({
     fetchProfilePictureUrl: async (input: { recipient: string }) => {
       pedidos.push(input.recipient);
-      return "https://cdn.exemplo.invalid/foto.jpg";
+      return "https://cdn.whatsapp.net/foto.jpg";
     },
   }),
 }));

@@ -56,6 +56,9 @@ describe("a sessão nasce ignorando o que o CRM não atende", () => {
     expect((criacao?.corpo as { config?: { ignore?: unknown } })?.config?.ignore).toEqual({
       status: true, broadcast: true, channels: true, groups: true,
     });
+    expect((criacao?.corpo as { config?: { noweb?: unknown } })?.config?.noweb).toEqual({
+      store: { enabled: true, fullSync: true },
+    });
   });
 
   it("os estados são a categoria que mais pesava — não podem sair da lista", () => {
@@ -106,6 +109,14 @@ describe("sessão que JÁ existe é corrigida — sem levar a config junto", () 
     const vistos = comSessao({ webhooks: WEBHOOKS, ignore: { ...CONVERSAS_IGNORADAS } });
     await new WahaClient("http://w", "k").startSession("s1");
     expect(vistos.some((v) => v.metodo === "PUT"), "reiniciou a sessão à toa").toBe(false);
+  });
+
+  it("preserva o store de uma sessão já pareada, inclusive quando desabilitado", async () => {
+    const noweb = { store: { enabled: false, fullSync: false } };
+    const vistos = comSessao({ webhooks: WEBHOOKS, noweb });
+    await new WahaClient("http://w", "k").startSession("s1");
+    const put = vistos.find((v) => v.metodo === "PUT");
+    expect((put?.corpo as { config?: { noweb?: unknown } })?.config?.noweb).toEqual(noweb);
   });
 
   it("se não conseguir LER a config, não escreve nada", async () => {

@@ -2,7 +2,7 @@
  * GET /api/v1/conversations — list inbox (handler em ./_handler.ts).
  */
 import { randomUUID } from "node:crypto";
-import { type NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 
 import { ApiError } from "@/lib/api/types";
 import { fail, ok } from "@/lib/api/wrappers";
@@ -11,6 +11,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 import { listConversationsQuerySchema } from "@/lib/schemas";
 import { createClient } from "@/lib/supabase/server";
 import { comNomeDoAtendente } from "@/lib/users/com-nome-do-atendente";
+import { warmVisibleContactAvatars } from "@/lib/contacts/avatars";
 
 import { listConversationsHandler } from "./_handler";
 
@@ -83,6 +84,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     // handler é compartilhado com as tools MCP, que já resolvem o nome por conta
     // própria (`lib/mcp/tools/conversations.ts`) — enriquecer lá faria a mesma
     // leitura duas vezes por chamada do agente.
+    after(() => warmVisibleContactAvatars(activeOrg.orgId, conversations, requestId));
     return ok(await comNomeDoAtendente(conversations), {
       requestId,
       meta: { cursor, has_more },

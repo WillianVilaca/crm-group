@@ -320,6 +320,23 @@ export class WahaClient {
     return this.sessionAfter(name, "start", 502);
   }
 
+  /** Read the local store, without downloading attachments or sending read receipts. */
+  async getHistoryMessages(name: string, input: {
+    offset: number; limit: number; since: number; until: number;
+  }): Promise<unknown> {
+    const url = new URL(`${this.baseUrl}/api/${encodeURIComponent(name)}/chats/all/messages`);
+    url.searchParams.set("offset", String(input.offset));
+    url.searchParams.set("limit", String(input.limit));
+    url.searchParams.set("filter.timestamp.gte", String(input.since));
+    url.searchParams.set("filter.timestamp.lte", String(input.until));
+    url.searchParams.set("downloadMedia", "false");
+    const res = await this.fetchComTeto(url, { headers: { "X-Api-Key": this.apiKey } });
+    if (!res.ok) throw new Error(`waha_history_${res.status}`);
+    const body: unknown = await res.json().catch(() => null);
+    if (!Array.isArray(body) || body.length > input.limit) throw new Error("waha_history_invalid_response");
+    return body;
+  }
+
   private async compatibleSession(session: WahaSessionSnapshot): Promise<boolean> {
     if (!session.config) return false;
     const engine = typeof session.engine === "string" ? session.engine : session.engine?.engine;
@@ -345,6 +362,8 @@ export class WahaClient {
         start: false,
         config: {
           ignore: CONVERSAS_IGNORADAS,
+          // Configure BEFORE the first QR. Never rewrite a paired session's store.
+          noweb: { store: { enabled: true, fullSync: true } },
           ...(webhook ? { webhooks: [webhook] } : {}),
         },
       }),
@@ -521,28 +540,24 @@ export class WahaClient {
   /**
    * URL da foto de perfil do contato, ou null.
    *
-   * NÃO lança quando falha: contato sem foto, com privacidade fechada ou
-   * simplesmente desconhecido é o caso COMUM, não erro. Quem chama é um cron de
-   * varredura — transformar isso em exceção encheria o log de ruído sobre o
-   * estado normal da maioria dos contatos.
+   * `null` significa ausência/privacidade, não queda do serviço. Uma falha de
+   * transporte deve permitir nova tentativa, sem carimbar "sem foto" por dias.
    *
    * A URL vem assinada pelo CDN do WhatsApp e expira (~9 dias, medido em
    * instalação real). Quem chama baixa e persiste; guardar a URL faz a foto
    * sumir sozinha depois.
    */
   async getProfilePictureUrl(session: string, chatId: string): Promise<string | null> {
-    try {
-      const res = await this.fetchComTeto(
-        `${this.baseUrl}/api/contacts/profile-picture` +
-          `?session=${encodeURIComponent(session)}&contactId=${encodeURIComponent(chatId)}`,
-        { headers: { "X-Api-Key": this.apiKey } },
-      );
-      if (!res.ok) return null;
-      const body = (await res.json()) as { profilePictureURL?: string | null };
-      return body.profilePictureURL ?? null;
-    } catch {
-      return null;
-    }
+    const res = await this.fetchComTeto(
+      `${this.baseUrl}/api/contacts/profile-picture` +
+        `?session=${encodeURIComponent(session)}&contactId=${encodeURIComponent(chatId)}`,
+      { headers: { "X-Api-Key": this.apiKey } },
+    );
+    if (!res.ok) throw new Error(`waha_profile_${res.status}`);
+    const parsed = z.object({ profilePictureURL: z.string().url().nullable() })
+      .safeParse(await res.json().catch(() => null));
+    if (!parsed.success) throw new Error("waha_profile_invalid_response");
+    return parsed.data.profilePictureURL;
   }
 
   /**

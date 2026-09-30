@@ -12,6 +12,9 @@ export const ApiErrorCodes = {
   invalid_request: "invalid_request",
   validation_failed: "validation_failed", // Zod retornou erros de schema (422 também aceita)
   invalid_cursor: "invalid_cursor",
+  history_unavailable: "history_unavailable",
+  history_schema_required: "history_schema_required",
+  history_import_failed: "history_import_failed",
 
   // Configuração de agentes: validação/estado ou indisponibilidade do provedor.
   prospecting_agent_session_failed: "prospecting_agent_session_failed",

@@ -23,6 +23,7 @@ import { AntiBanSheet } from "./AntiBanSheet";
 import { PairingOptions } from "./PairingOptions";
 import { ChannelAiAccess } from "./ChannelAiAccess";
 import { ParaIntegrar } from "./ParaIntegrar";
+import { ContactHistoryDialog } from "./ContactHistoryDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -125,6 +126,7 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
   const [checking, setChecking] = useState(false);
   const [qr, setQr] = useState<{ sessionId: string; title: string } | null>(null);
   const [antiBanId, setAntiBanId] = useState<string | null>(null);
+  const [historyChannel, setHistoryChannel] = useState<ChannelSession | null>(null);
   const [toDelete, setToDelete] = useState<ChannelSession | null>(null);
   const pacingItems = usePacingKnobs().data?.items ?? [];
 
@@ -414,6 +416,9 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
                     <ShieldCheck size={14} aria-hidden />
                     {t("Proteção de envio")}
                   </Button>
+                  {vivaNoTransporte && <Button variant="outline" size="sm" disabled={!wahaConfigured || c.status !== "WORKING"} onClick={() => setHistoryChannel(c)}>
+                    {t("Fotos e histórico")}
+                  </Button>}
                   <Button
                     variant="outline"
                     size="sm"
@@ -452,6 +457,7 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
           onDeleted={handleDeleted}
         />
       )}
+      {historyChannel && <ContactHistoryDialog channelId={historyChannel.id} label={channelLabel(historyChannel, t)} onClose={() => setHistoryChannel(null)} />}
 
       {qr && (
         <QrDialog

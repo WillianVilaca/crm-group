@@ -6,6 +6,7 @@
 import type { SendMessageInput } from "@/lib/schemas";
 import type { FetchedMedia } from "@/lib/messaging/media/types";
 import type { OutboundMedia } from "@/lib/waha/media-send";
+import type { ChannelHistoryOps } from "./history-types";
 
 export type { OutboundMedia };
 
@@ -167,6 +168,8 @@ export interface OutboundEnvelope extends ChannelTenantScope {
  * evitar — quem quiser saber o que o canal permite pergunta a `capabilitiesOf`.
  */
 export interface ChannelAdapter {
+  /** Read-only history capability: cannot send or mark chats read. */
+  history?: ChannelHistoryOps;
   provider: ChannelProvider;
   /** null = não há endereço possível para este contato neste canal. */
   resolveRecipient(input: RecipientInput): string | null;

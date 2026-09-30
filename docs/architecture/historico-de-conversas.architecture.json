@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "Fotos e histórico", "subtitle": "Contexto antigo sem dispatch de atendimento", "quality_profile": "standard" },
+  "lanes": [
+    { "id": "ui", "label": "Operação" },
+    { "id": "server", "label": "Servidor" },
+    { "id": "data", "label": "Dados" }
+  ],
+  "mainPath": ["dialog", "route", "adapter", "rpc", "inbox"],
+  "nodes": [
+    { "id": "dialog", "lane": "ui", "label": "Conexões / ContactHistoryDialog" },
+    { "id": "route", "lane": "server", "label": "channel-sessions/:id/history / admin + MFA + cursor assinado" },
+    { "id": "adapter", "lane": "server", "label": "ChannelAdapter.history / normalização 1:1 / store local" },
+    { "id": "rpc", "lane": "data", "label": "fn_import_channel_history / tenant + dedup + gatilhos guardados" },
+    { "id": "suppression", "lane": "data", "label": "Anonimização → tokens HMAC server-only" },
+    { "id": "inbox", "lane": "ui", "label": "Inbox / Todas e Fechadas / fotos por realtime" },
+    { "id": "photos", "lane": "server", "label": "refreshContactAvatars / after() + ação admin + cron" },
+    { "id": "storage", "lane": "data", "label": "whatsapp-media privado / limite 2 MB / CDN permitido" },
+    { "id": "audit", "lane": "data", "label": "api_audit_log / contagens, nunca conteúdo" }
+  ],
+  "edges": [
+    { "id": "e1", "from": "dialog", "to": "route", "label": "período, páginas e pausa" },
+    { "id": "e2", "from": "route", "to": "adapter", "label": "sessão da organização autenticada" },
+    { "id": "e3", "from": "adapter", "to": "rpc", "label": "mensagens normalizadas, datas originais" },
+    { "id": "e4", "from": "rpc", "to": "suppression", "label": "não ressuscitar contato anonimizado" },
+    { "id": "e5", "from": "suppression", "to": "rpc", "label": "nega identidade suprimida" },
+    { "id": "e6", "from": "rpc", "to": "inbox", "label": "histórico fechado; conversa atual preservada" },
+    { "id": "e7", "from": "route", "to": "audit", "label": "recibo por lote" },
+    { "id": "e8", "from": "dialog", "to": "photos", "label": "atualizar fotos do número" },
+    { "id": "e9", "from": "inbox", "to": "photos", "label": "aquecer fotos frias após resposta" },
+    { "id": "e10", "from": "photos", "to": "storage", "label": "arquivo privado, guardas LGPD" },
+    { "id": "e11", "from": "storage", "to": "inbox", "label": "URL assinada via query existente" },
+    { "id": "e12", "from": "photos", "to": "audit", "label": "ação manual auditada" },
+    { "id": "e13", "from": "route", "to": "dialog", "label": "recibo por lote e disponibilidade" }
+  ],
+  "non_connections": ["Mensagens importadas não emitem message_received, demandas ou jobs de IA.", "Este fluxo não modifica nem reinicia sessões já pareadas."]
+}

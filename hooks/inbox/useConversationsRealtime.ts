@@ -152,6 +152,13 @@ export function useConversationsRealtime(
     qc.invalidateQueries({ queryKey: ["conversations"] });
   }, [qc]);
 
+  // Photos arrive after the initial list response; refresh the visible contact data.
+  useRealtimeChannel({
+    name: orgId ? `inbox-contact-photos-${orgId}` : "inbox-contact-photos-disabled",
+    postgresChanges: orgId ? { event: "UPDATE", schema: "public", table: "contacts", filter: `organization_id=eq.${orgId}` } : undefined,
+    onChange, enabled: !!orgId,
+  });
+
   // G4-01 (visibility_mode): a subscription postgres_changes HERDA a RLS de
   // SELECT de `conversations` — o Supabase Realtime avalia as policies do usuário
   // autenticado antes de entregar cada change (docs: "Realtime respects RLS

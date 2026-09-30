@@ -783,6 +783,8 @@ export const AUDIT_ACTIONS = [
   "external_db_connection.deleted",
   "external_db_connection.tested",
   "external_db_connection.read",
+  "channel.history_imported",
+  "channel.contact_photos_refreshed",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */
