@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Tag, Receipt, Users, ArrowRight } from "@/lib/ui/icons";
+import { Tag, Receipt, Users, ArrowRight, IdentificationCard } from "@/lib/ui/icons";
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
 import type { ConversationWithContact } from "@/hooks/inbox/useConversationsRealtime";
@@ -599,14 +599,19 @@ export function CRMSidePanel({ conversation }: Props) {
 
   if (!conversation) {
     return (
-      <aside className="flex h-full items-center justify-center border-l border-border p-4 text-center text-xs text-muted-foreground">
-        {t("Selecione uma conversa para ver detalhes do contato.")}
+      <aside className="flex h-full flex-col bg-card">
+        <h2 className="border-b border-border px-4 py-5 text-sm font-semibold">{t("Contato")}</h2>
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-elevated text-text-subtle"><IdentificationCard size={27} weight="duotone" aria-hidden /></span>
+          <p className="text-sm font-medium text-text">{t("O contexto faz a diferença")}</p>
+          <p className="text-xs leading-relaxed text-text-muted">{t("Selecione uma conversa para ver detalhes do contato.")}</p>
+        </div>
       </aside>
     );
   }
 
   return (
-    <aside className="flex h-full flex-col gap-4 overflow-y-auto border-l border-border bg-background p-4">
+    <aside className="flex h-full flex-col gap-4 overflow-y-auto bg-card p-4">
       <section>
         <h3 className="text-xs font-semibold text-text">
           {t("Contato")}

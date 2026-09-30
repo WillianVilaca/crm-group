@@ -16,6 +16,7 @@ import {
 } from "@/hooks/inbox/useConversationsRealtime";
 import { useConversation, isNotFound } from "@/hooks/inbox/useConversation";
 import { ConversationList } from "./ConversationList";
+import { InboxOverview } from "./InboxOverview";
 import { InboxFilters, type InboxFiltersValue, type InboxTab } from "./InboxFilters";
 import { ChatThread } from "./ChatThread";
 import { Composer, type ComposerHandle } from "./Composer";
@@ -28,7 +29,7 @@ import { InboxKeyboardShortcuts } from "./InboxKeyboardShortcuts";
 import { ShortcutsHelpDialog } from "./ShortcutsHelpDialog";
 import { OpenConversationProvider } from "@/hooks/notifications/OpenConversationContext";
 // ADR-05: ícone de feature sai do mapa canônico, nunca do pacote direto.
-import { CaretLeft, ChatCircle, IdentificationCard } from "@/lib/ui/icons";
+import { ArrowsClockwise, CaretLeft, ChatCircle, IdentificationCard } from "@/lib/ui/icons";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -377,7 +378,7 @@ export function InboxLayout({ initialSelectedId = null }: InboxLayoutProps = {})
   return (
     <OpenConversationProvider conversationId={selectedId}>
     <div
-      className="grid h-[calc(100dvh-3.5rem-var(--space-6)-max(var(--space-6),var(--rodape-ocupado,0px)))] w-full grid-cols-1 md:grid-cols-[300px_1fr] xl:grid-cols-[272px_1fr_296px] 2xl:grid-cols-[300px_1fr_320px]"
+      className="groupcrm-inbox flex h-[calc(100dvh-3.5rem-var(--space-6)-max(var(--space-6),var(--rodape-ocupado,0px)))] w-full flex-col"
       /*
        * O ESTADO DO TEMPO REAL, LEGÍVEL DE FORA — mesmo par que o dossiê do lead
        * já publica (`LeadDossier`), e pela mesma razão: quando a entrega morre,
@@ -401,6 +402,11 @@ export function InboxLayout({ initialSelectedId = null }: InboxLayoutProps = {})
       data-realtime-status={listQ.realtimeStatus}
       data-refetch-divergencias={listQ.seguranca?.divergencias ?? 0}
     >
+      <InboxOverview
+        hasSelection={Boolean(selectedId)}
+        onSelectTab={(tab) => setFilterValue({ ...filterValue, tab })}
+      />
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[272px_minmax(0,1fr)_280px] 2xl:grid-cols-[332px_minmax(0,1fr)_320px]">
       {/*
         NO CELULAR, UMA COISA POR VEZ.
 
@@ -416,10 +422,16 @@ export function InboxLayout({ initialSelectedId = null }: InboxLayoutProps = {})
       */}
       <div
         className={cn(
-          "h-full min-h-0 flex-col border-r border-border md:flex",
+          "inbox-panel h-full min-h-0 flex-col md:flex",
           colunas.lista,
         )}
       >
+        <div className="flex items-center justify-between px-4 pb-1 pt-4">
+          <h2 className="text-base font-semibold tracking-tight">{t("Conversas")}</h2>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-text-muted" aria-label={t("Atualizar conversas")} disabled={listQ.isFetching} onClick={() => void listQ.refetch()}>
+            <ArrowsClockwise size={18} className={cn(listQ.isFetching && "animate-spin")} aria-hidden />
+          </Button>
+        </div>
         <InboxFilters value={filterValue} onChange={setFilterValue} />
         <div className="min-h-0 flex-1 overflow-hidden">
           <ConversationList
@@ -447,7 +459,7 @@ export function InboxLayout({ initialSelectedId = null }: InboxLayoutProps = {})
       */}
       <div
         className={cn(
-          "h-full min-h-0 flex-col md:flex",
+          "inbox-panel h-full min-h-0 min-w-0 flex-col md:flex",
           colunas.conversa,
         )}
       >
@@ -488,7 +500,7 @@ export function InboxLayout({ initialSelectedId = null }: InboxLayoutProps = {})
         {selectedConversation ? (
           <>
             <ConversationHeader conversation={selectedConversation} />
-            <div className="min-h-0 flex-1 overflow-hidden">
+            <div className="inbox-chat-surface min-h-0 flex-1 overflow-hidden">
               <ChatThread
                 conversationId={selectedConversation.id}
                 onResponder={setRespondendo}
@@ -528,16 +540,18 @@ export function InboxLayout({ initialSelectedId = null }: InboxLayoutProps = {})
             {t("Conversa não encontrada ou fora do seu acesso.")}
           </div>
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
-            <ChatCircle size={36} weight="thin" className="text-text-subtle" aria-hidden />
-            <p className="text-sm font-medium text-text-muted">{t("Selecione uma conversa")}</p>
-            <p className="text-xs text-text-muted">{t("Ou navegue com J e K")}</p>
+          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+            <span className="mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-accent-soft text-accent"><ChatCircle size={38} weight="duotone" aria-hidden /></span>
+            <h2 className="text-lg font-semibold tracking-tight text-text">{t("Vamos conversar?")}</h2>
+            <p className="mt-2 max-w-64 text-sm leading-relaxed text-text-muted">{t("Selecione uma conversa ao lado para acompanhar o histórico e responder ao cliente.")}</p>
+            <p className="mt-6 text-xs text-text-subtle">{t("Ou navegue com J e K")}</p>
           </div>
         )}
       </div>
 
-      <div className="hidden h-full min-h-0 xl:block">
+      <div className="inbox-panel hidden h-full min-h-0 xl:block">
         <CRMSidePanel conversation={selectedConversation} />
+      </div>
       </div>
 
       <InboxKeyboardShortcuts

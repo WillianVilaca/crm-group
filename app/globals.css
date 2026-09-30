@@ -516,14 +516,14 @@
    sem alterar a régua global usada pelo showcase e pelas telas white-label.
    ───────────────────────────────────────────────────────────────────────── */
 html[data-theme="light"] .groupcrm-app {
-  --color-bg: #eef4f7;
-  --color-surface: #fbfdfe;
-  --color-surface-elevated: #e4eef3;
+  --color-bg: #f3f6fa;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #eaf0f6;
   --color-overlay: rgba(9, 30, 45, 0.34);
   --color-text: #102331;
   --color-text-muted: #4e6878;
   --color-text-subtle: #708795;
-  --color-border: #d2e1e8;
+  --color-border: #dce4ee;
   --color-border-strong: #b7cfdc;
   --color-accent: #087eb7;
   --color-accent-fg: #ffffff;
@@ -565,27 +565,23 @@ html[data-theme="light"] .groupcrm-app {
   --border: var(--color-border);
   --input: var(--color-border);
   --ring: #087eb7;
-  background-image:
-    radial-gradient(circle at 78% -10%, rgba(39, 193, 237, 0.14), transparent 30rem),
-    linear-gradient(rgba(16, 35, 49, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(16, 35, 49, 0.035) 1px, transparent 1px);
-  background-size: auto, 36px 36px, 36px 36px;
+  background-image: none;
 }
 
 html[data-theme="dark"] .groupcrm-app {
-  --color-bg: #07141d;
-  --color-surface: #0d1d2a;
-  --color-surface-elevated: #132b3d;
+  --color-bg: #08131e;
+  --color-surface: #101d2b;
+  --color-surface-elevated: #192a3c;
   --color-overlay: rgba(1, 9, 15, 0.72);
-  --color-text: #edf7fb;
-  --color-text-muted: #9bb4c3;
-  --color-text-subtle: #718d9d;
-  --color-border: #204055;
+  --color-text: #eff5fc;
+  --color-text-muted: #9eafc1;
+  --color-text-subtle: #798ea4;
+  --color-border: #24384c;
   --color-border-strong: #2e5b73;
-  --color-accent: #31c5ed;
-  --color-accent-fg: #06131e;
-  --color-accent-soft: rgba(49, 197, 237, 0.14);
-  --color-accent-hover: #78dcf5;
+  --color-accent: #0aabeb;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: rgba(10, 171, 235, 0.12);
+  --color-accent-hover: #32bbf0;
   --color-success: #5ed0ad;
   --color-success-bg: rgba(94, 208, 173, 0.14);
   --color-success-fg: #8ce4c8;
@@ -621,17 +617,34 @@ html[data-theme="dark"] .groupcrm-app {
   --destructive-foreground: #ffffff;
   --border: var(--color-border);
   --input: var(--color-border);
-  --ring: #31c5ed;
-  background-image:
-    radial-gradient(circle at 78% -10%, rgba(49, 197, 237, 0.13), transparent 30rem),
-    linear-gradient(rgba(237, 247, 251, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(237, 247, 251, 0.035) 1px, transparent 1px);
-  background-size: auto, 36px 36px, 36px 36px;
+  --ring: #0aabeb;
+  background-image: none;
 }
 
-.groupcrm-app > * {
-  position: relative;
-  z-index: 1;
+.groupcrm-inbox .inbox-panel {
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.groupcrm-inbox .inbox-metric {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.groupcrm-inbox .inbox-metric:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-elevated);
+}
+
+.groupcrm-inbox [data-conversation-id][aria-current="true"] {
+  background: var(--color-accent-soft);
+}
+
+.groupcrm-inbox .inbox-chat-surface {
+  background: var(--color-bg);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

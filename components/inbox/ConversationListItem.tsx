@@ -205,14 +205,14 @@ export function ConversationListItem({
       data-conversation-id={conversation.id}
       onClick={() => onSelect(conversation.id)}
       className={cn(
-        "group relative flex w-full items-start gap-3 border-b border-border/70 px-3 py-2.5 text-left transition-colors hover:bg-surface-elevated",
+        "group relative flex w-full items-start gap-3 rounded-xl px-3 py-3.5 text-left transition-colors hover:bg-surface-elevated",
         "focus-visible:outline-hidden focus-visible:bg-surface-elevated",
         isSelected && "bg-accent-50 hover:bg-accent-50",
       )}
       aria-current={isSelected ? "true" : undefined}
     >
       {isSelected && (
-        <span className="absolute inset-y-0 left-0 w-0.5 bg-accent" aria-hidden />
+        <span className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-accent" aria-hidden />
       )}
       <div className="relative shrink-0">
         <Avatar className="h-10 w-10">

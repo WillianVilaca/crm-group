@@ -237,9 +237,9 @@ export function InboxFilters({ value, onChange }: Props) {
   }, [searchInput]);
 
   return (
-    <div className="border-b border-border bg-background">
+    <div className="border-b border-border bg-card">
       <div className="space-y-2 px-3 pt-3 pb-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2">
           <div className="relative min-w-0 flex-1">
             <MagnifyingGlass
               size={15}
@@ -257,7 +257,7 @@ export function InboxFilters({ value, onChange }: Props) {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder={t("Buscar por nome, telefone ou última mensagem…")}
-              className="h-9 rounded-full border-transparent bg-surface-elevated pl-9 text-sm shadow-none focus-visible:border-border focus-visible:bg-background"
+              className="h-10 rounded-xl border-border bg-surface-elevated/60 pl-9 text-sm shadow-none focus-visible:border-accent focus-visible:bg-card"
               aria-label={t("Buscar conversas")}
             />
           </div>
@@ -269,7 +269,7 @@ export function InboxFilters({ value, onChange }: Props) {
             aria-pressed={value.onlyUnread}
             onClick={() => onChange({ ...value, onlyUnread: !value.onlyUnread })}
             className={cn(
-              "h-9 shrink-0 rounded-full border px-3 text-xs font-medium transition-colors",
+              "h-7 self-start rounded-lg border px-2.5 text-xs font-medium transition-colors",
               "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               value.onlyUnread
                 ? "border-accent bg-accent text-accent-foreground"
@@ -371,7 +371,7 @@ export function InboxFilters({ value, onChange }: Props) {
         onValueChange={(v) => onChange({ ...value, tab: v as InboxTab })}
         className="px-3"
       >
-        <TabsList className="h-auto w-full justify-between gap-2 rounded-none bg-transparent p-0 [scrollbar-width:none]">
+        <TabsList className="h-auto w-full flex-wrap justify-start gap-x-3 gap-y-1 rounded-none bg-transparent p-0">
           {tabs.map((tab) => {
             const meta = INBOX_TABS.find((t) => t.value === tab)!;
             const count = countFor[tab];

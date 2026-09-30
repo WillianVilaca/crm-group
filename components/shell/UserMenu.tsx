@@ -36,11 +36,12 @@ export function UserMenu() {
       <ThemeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="rounded-full" aria-label={t("Menu do usuário")}>
+          <Button variant="ghost" className="h-auto gap-2 rounded-lg px-1.5 py-1" aria-label={t("Menu do usuário")}>
             <Avatar className="h-8 w-8">
               {user.avatar_url && <AvatarImage src={user.avatar_url} alt="" />}
               <AvatarFallback>{initials(user.full_name, user.email)}</AvatarFallback>
             </Avatar>
+            <span className="hidden max-w-32 truncate text-left text-xs font-semibold xl:block">{user.full_name ?? t("Minha conta")}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[220px]">

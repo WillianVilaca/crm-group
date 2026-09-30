@@ -7,15 +7,15 @@ import { SearchTrigger } from "./SearchTrigger";
 
 export function TopBar() {
   return (
-    <header className="relative sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-border/80 bg-card/90 px-3 backdrop-blur-xl after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-accent/45 after:to-transparent md:gap-4 md:px-6">
+    <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-card px-3 md:gap-4 md:px-6">
       <div className="flex min-w-0 items-center gap-2">
         <MobileSidebar />
         <TenantSwitcher />
       </div>
-      <div className="flex min-w-0 flex-1 justify-center md:max-w-md">
+      <div className="flex min-w-0 flex-1 md:max-w-xl">
         <SearchTrigger />
       </div>
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="ml-auto flex shrink-0 items-center gap-2">
         <AlertsBell />
         <UserMenu />
       </div>

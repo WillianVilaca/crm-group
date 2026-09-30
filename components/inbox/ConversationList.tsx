@@ -153,7 +153,7 @@ export function ConversationList({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-1.5">
         {/* Vazio por FILTRO: fica DENTRO do return, nunca como `return` precoce —
             e por isso o bloco do `hasNextPage` abaixo continua sendo alcancado. */}
         {items.length === 0 && filtrosAtivos.length > 0 && (

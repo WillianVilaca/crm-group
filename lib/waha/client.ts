@@ -147,10 +147,9 @@ const EVENTOS_DO_WEBHOOK_CRM = [
   "state.change",
 ] as const;
 
-/** Normaliza a porta interna usada pelo serviço WAHA no EasyPanel. */
+/** Limpa a URL sem adivinhar host/porta: cada instalação tem sua própria rede. */
 export function normalizarBaseUrlWaha(url: string): string {
-  const normalizada = url.trim().replace(/\/+$/, "");
-  return normalizada.toLowerCase() === "http://waha:3000" ? "http://waha:80" : normalizada;
+  return url.trim().replace(/\/+$/, "");
 }
 
 type WahaWebhookConfig = {
@@ -160,13 +159,30 @@ type WahaWebhookConfig = {
   retries: { delaySeconds: number; attempts: number };
 };
 
-function webhookDoCrm(): WahaWebhookConfig | null {
+export async function resolverBaseDoWebhook(base: string): Promise<string> {
+  const url = new URL(base);
+  // O DNS do Docker Swarm usa projeto_serviço. WAHA aceita o destino privado,
+  // mas seu validador de URL recusa underscores no hostname (HTTP 400).
+  // Resolver o VIP a partir do nome completo mantém o tráfego privado e evita
+  // tanto o alias ambíguo "app" quanto um IP fixo digitado na configuração.
+  if (url.hostname.includes("_")) {
+    try {
+      const { lookup } = await import("node:dns/promises");
+      url.hostname = (await lookup(url.hostname, { family: 4 })).address;
+    } catch {
+      throw new Error("waha_webhook_dns_unavailable");
+    }
+  }
+  return url.toString().replace(/\/+$/, "");
+}
+
+async function webhookDoCrm(): Promise<WahaWebhookConfig | null> {
   const base = process.env.WAHA_WEBHOOK_BASE_URL?.trim().replace(/\/+$/, "");
   if (!base) return null;
 
   const hmac = process.env.WAHA_HMAC_SECRET?.trim();
   return {
-    url: `${base}/api/v1/webhooks/waha`,
+    url: `${await resolverBaseDoWebhook(base)}/api/v1/webhooks/waha`,
     events: EVENTOS_DO_WEBHOOK_CRM,
     ...(hmac && hmac.length >= 16 ? { hmac: { key: hmac } } : {}),
     retries: { delaySeconds: 2, attempts: 3 },
@@ -175,6 +191,8 @@ function webhookDoCrm(): WahaWebhookConfig | null {
 
 function webhookTemContratoAtual(value: unknown, desejado: WahaWebhookConfig): boolean {
   if (!Array.isArray(value)) return false;
+  // Não deixar uma cópia antiga entregando eventos para outra instalação.
+  if (value.some((item) => ehWebhookGlobalDoCrm(item) && item.url !== desejado.url)) return false;
   const encontrado = value.find(
     (item): item is Record<string, unknown> =>
       typeof item === "object" && item !== null && (item as Record<string, unknown>).url === desejado.url,
@@ -196,11 +214,20 @@ function webhookTemContratoAtual(value: unknown, desejado: WahaWebhookConfig): b
   return true;
 }
 
+function ehWebhookGlobalDoCrm(value: unknown): value is Record<string, unknown> & { url: string } {
+  if (typeof value !== "object" || value === null || !("url" in value) || typeof value.url !== "string") return false;
+  try {
+    return new URL(value.url).pathname === "/api/v1/webhooks/waha";
+  } catch {
+    return false;
+  }
+}
+
 function acrescentarWebhookDoCrm(value: unknown, desejado: WahaWebhookConfig): unknown[] {
   const existentes = Array.isArray(value) ? value : [];
   return [
     ...existentes.filter(
-      (item) => !(typeof item === "object" && item !== null && (item as Record<string, unknown>).url === desejado.url),
+      (item) => !ehWebhookGlobalDoCrm(item) && !(typeof item === "object" && item !== null && (item as Record<string, unknown>).url === desejado.url),
     ),
     desejado,
   ];
@@ -309,7 +336,7 @@ export class WahaClient {
 
   /** Porta granular para a futura reserva: created nunca significa ownership. */
   async createSession(name: string): Promise<{ created: boolean; session: WahaSessionSnapshot }> {
-    const webhook = webhookDoCrm();
+    const webhook = await webhookDoCrm();
     const res = await this.fetchComTeto(`${this.baseUrl}/api/sessions`, {
       method: "POST",
       headers: { "X-Api-Key": this.apiKey, "Content-Type": "application/json" },
@@ -434,7 +461,7 @@ export class WahaClient {
       const sessao = parsed.data;
       if (!sessao.config) return;
 
-      const webhook = webhookDoCrm();
+      const webhook = await webhookDoCrm();
       const config = {
         ...sessao.config,
         ignore: CONVERSAS_IGNORADAS,
